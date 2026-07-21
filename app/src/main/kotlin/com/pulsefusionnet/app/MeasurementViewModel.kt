@@ -33,6 +33,7 @@ private const val ABSENT_PAUSE_FRAMES = 15
 private const val ABSENT_ABORT_FRAMES = 150
 private const val MAX_BUFFER = 1800 // 60s at 30fps
 private const val ANALYSIS_INTERVAL_MS = 3000L
+private const val TOTAL_ANALYSIS_TICKS = MEASURE_DURATION_SEC / 3 // 20 ticks, 3s apart, across 60s
 
 class MeasurementViewModel : ViewModel() {
 
@@ -194,18 +195,26 @@ class MeasurementViewModel : ViewModel() {
         signalQualityPct = 0
         journey = Journey.MEASURING
 
+        analysisJob = viewModelScope.launch {
+            // Bounded to a fixed tick count rather than looping forever — this is what
+            // lets the countdown below wait for the LAST tick to finish instead of a race
+            // between "countdown hits zero" and "analysis timer fires" deciding whether
+            // that final reading survives.
+            repeat(TOTAL_ANALYSIS_TICKS) {
+                delay(ANALYSIS_INTERVAL_MS)
+                runAnalysis()
+            }
+        }
         countdownJob = viewModelScope.launch {
             while (secondsRemaining > 0) {
                 delay(1000)
                 if (!isPaused) secondsRemaining--
             }
+            // The last analysis tick is often still mid-flight (its own processing time
+            // pushes it past the 60s mark) — join instead of letting stopTimers() cancel
+            // it, so a clean 60s measurement reliably yields all TOTAL_ANALYSIS_TICKS readings.
+            analysisJob?.join()
             finishMeasurement()
-        }
-        analysisJob = viewModelScope.launch {
-            while (true) {
-                delay(ANALYSIS_INTERVAL_MS)
-                runAnalysis()
-            }
         }
     }
 

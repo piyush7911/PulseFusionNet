@@ -170,19 +170,34 @@ fun PulsingDot(color: Color, size: Int = 9) {
     )
 }
 
-/** Simple animated sparkline for the live PPG waveform. */
+/**
+ * Live PPG sparkline — plots the REAL captured camera readings, no synthetic motion.
+ * Raw brightness samples are dominated by slow baseline drift, which would otherwise
+ * bury the actual pulsatile ripple; a local moving-average detrend (same window and
+ * formula as the web app's drawWaveform) subtracts that drift so the genuine
+ * heartbeat-shaped fluctuation in the real signal is what's visible.
+ */
 @Composable
 fun Waveform(samples: List<Float>, color: Color, modifier: Modifier = Modifier) {
     androidx.compose.foundation.Canvas(modifier = modifier.fillMaxWidth().aspectRatio(5f)) {
-        if (samples.size < 3) return@Canvas
+        if (samples.size < 5) return@Canvas
+        val win = 15
+        val detrended = FloatArray(samples.size) { i ->
+            val lo = maxOf(0, i - win)
+            val hi = minOf(samples.size - 1, i + win)
+            var sum = 0f
+            var count = 0
+            for (j in lo..hi) { sum += samples[j]; count++ }
+            samples[i] - sum / count
+        }
         val w = size.width
         val h = size.height
-        val minV = samples.min()
-        val maxV = samples.max()
+        val minV = detrended.min()
+        val maxV = detrended.max()
         val range = (maxV - minV).takeIf { it > 0.0001f } ?: 1f
-        val step = w / (samples.size - 1)
+        val step = w / (detrended.size - 1)
         val path = androidx.compose.ui.graphics.Path()
-        samples.forEachIndexed { i, v ->
+        detrended.forEachIndexed { i, v ->
             val x = i * step
             val y = h - ((v - minV) / range) * (h - 8) - 4
             if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
