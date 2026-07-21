@@ -143,7 +143,7 @@ fun HomeScreen(onStart: () -> Unit) {
         ) {
             Icon(PulseIcons.Shield, contentDescription = null, tint = PulseColors.Muted, modifier = Modifier.size(15.dp))
             Text(
-                "Runs fully offline on this device. General wellness reference only — not a medical device.",
+                "General wellness reference only — not a medical device.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = PulseColors.Muted
             )

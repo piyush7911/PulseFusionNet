@@ -85,7 +85,7 @@ fun DetectingScreen(
                 Column {
                     Text("LIVE SIGNAL", style = MaterialTheme.typography.labelSmall, color = PulseColors.Muted)
                     androidx.compose.foundation.layout.Spacer(Modifier.size(6.dp))
-                    Waveform(waveformSamples, PulseColors.Cyan)
+                    Waveform(waveformSamples, PulseColors.Red)
                 }
             }
         }

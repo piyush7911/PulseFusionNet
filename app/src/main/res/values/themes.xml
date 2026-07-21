@@ -6,14 +6,4 @@
         <item name="android:windowBackground">#03070F</item>
         <item name="android:windowLightStatusBar">false</item>
     </style>
-
-    <!-- Shown instantly at cold start via androidx.core.splashscreen, before Compose
-         even inflates — the OS renders this from a WindowManager layer with no Kotlin
-         code running yet, so this is the closest thing to a zero-latency brand moment. -->
-    <style name="Theme.PulseFusionNet.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#03070F</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_heart</item>
-        <item name="windowSplashScreenIconBackgroundColor">#03070F</item>
-        <item name="postSplashScreenTheme">@style/Theme.PulseFusionNet</item>
-    </style>
 </resources>

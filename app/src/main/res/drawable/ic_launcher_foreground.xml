@@ -4,17 +4,8 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M54,80C54,80 22,58 22,34C22,22 31,14 41,14C47,14 51.5,17 54,21.5C56.5,17 61,14 67,14C77,14 86,22 86,34C86,58 54,80 54,80Z">
-        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:fillColor">
-            <gradient
-                android:startX="20"
-                android:startY="14"
-                android:endX="86"
-                android:endY="80"
-                android:type="linear">
-                <item android:offset="0.0" android:color="#3B82F6" />
-                <item android:offset="1.0" android:color="#06B6D4" />
-            </gradient>
-        </aapt:attr>
-    </path>
+    <!-- White heart glyph, kept inside the adaptive-icon safe zone (centered 66dp circle) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,74 C54,74 35,59.5 35,46.5 C35,38 41.5,31.5 49,31.5 C51.6,31.5 53.2,33.1 54,35.3 C54.8,33.1 56.4,31.5 59,31.5 C66.5,31.5 73,38 73,46.5 C73,59.5 54,74 54,74 Z" />
 </vector>
