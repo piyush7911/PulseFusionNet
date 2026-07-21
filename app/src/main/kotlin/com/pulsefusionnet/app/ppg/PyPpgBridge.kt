@@ -1,0 +1,38 @@
+package com.pulsefusionnet.app.ppg
+
+import com.chaquo.python.PyObject
+import com.chaquo.python.Python
+
+data class PyEnsembleResult(
+    val consensusBpm: Double,
+    val greenBpm: Double,
+    val redBpm: Double,
+    val pcaBpm: Double,
+    val confidence: Double
+)
+
+/**
+ * Calls the REAL numpy-based PPG pipeline embedded on-device via Chaquopy
+ * (src/main/python/pulsefusion_ppg.py) — not a Kotlin reimplementation. This is the same
+ * algorithm as pulsefusionnet's RealPhysiologicalPreprocessor + ClassicalPPGExtractor;
+ * scipy/pywt calls were swapped for numpy-only equivalents because neither has an Android
+ * build, and that numpy-only port is validated against the real scipy/pywt backend by
+ * scripts/validate_numpy_ppg_port.py (parity within ~0.04 BPM across a 58-140 BPM sweep).
+ */
+object PyPpgBridge {
+
+    private val module: PyObject by lazy {
+        Python.getInstance().getModule("pulsefusion_ppg")
+    }
+
+    fun analyze(green: DoubleArray, red: DoubleArray, fps: Double): PyEnsembleResult {
+        val result: PyObject = module.callAttr("analyze", green, red, fps)
+        return PyEnsembleResult(
+            consensusBpm = result.callAttr("get", "consensus_bpm").toDouble(),
+            greenBpm = result.callAttr("get", "green_bpm").toDouble(),
+            redBpm = result.callAttr("get", "red_bpm").toDouble(),
+            pcaBpm = result.callAttr("get", "pca_bpm").toDouble(),
+            confidence = result.callAttr("get", "confidence").toDouble()
+        )
+    }
+}
