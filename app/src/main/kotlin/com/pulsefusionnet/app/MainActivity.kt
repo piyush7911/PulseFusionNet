@@ -124,6 +124,7 @@ class MainActivity : ComponentActivity() {
                                 fingerOnLens = viewModel.fingerOnLens,
                                 stabilizationPct = viewModel.stabilizationPct,
                                 waveformSamples = viewModel.waveformSamples,
+                                cameraController = cameraController,
                                 onCancel = { viewModel.cancelAndReturnHome() }
                             )
 
@@ -134,7 +135,8 @@ class MainActivity : ComponentActivity() {
                                 fingerPresent = viewModel.fingerPresent,
                                 movementWarning = viewModel.movementWarning,
                                 isPaused = viewModel.isPaused,
-                                waveformSamples = viewModel.waveformSamples
+                                waveformSamples = viewModel.waveformSamples,
+                                cameraController = cameraController
                             )
 
                             Journey.FAILED -> FailedScreen(

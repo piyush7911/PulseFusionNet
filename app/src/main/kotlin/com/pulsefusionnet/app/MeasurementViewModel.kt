@@ -227,6 +227,9 @@ class MeasurementViewModel : ViewModel() {
         absentFrames = 0
     }
 
+    private val sqiReadings = mutableListOf<Double>()
+    private val qualityFlags = mutableListOf<String>()
+
     private suspend fun runAnalysis() {
         if (greenBuffer.size < 60) return // need >= 2s
 
@@ -244,8 +247,11 @@ class MeasurementViewModel : ViewModel() {
 
         bpmReadings.add(emaBpm)
         confReadings.add(ensemble.confidence)
+        sqiReadings.add(ensemble.signalQualityIndex)
+        qualityFlags.add(ensemble.qualityFlag)
+
         liveBpmText = "%.1f".format(emaBpm)
-        signalQualityPct = ensemble.confidence.roundToInt()
+        signalQualityPct = ensemble.signalQualityIndex.roundToInt()
     }
 
     private fun estimateFps(): Double {
@@ -261,11 +267,21 @@ class MeasurementViewModel : ViewModel() {
             abort("No valid readings collected. Ensure the camera is fully covered.")
             return
         }
-        val sorted = bpmReadings.sorted()
-        val trim = maxOf(1, (sorted.size * 0.15).toInt())
-        val trimmed = if (sorted.size > 2 * trim) sorted.subList(trim, sorted.size - trim) else sorted
-        val finalBpm = median(trimmed)
-        val finalConf = median(confReadings)
+        // Use the last 5 readings (representing the 48s-60s high-resolution stable window)
+        // to ignore noisy early-session estimates while maintaining robust outlier filtering via median.
+        val stableBpms = bpmReadings.takeLast(5)
+        val stableConfs = confReadings.takeLast(5)
+        val stableSqi = sqiReadings.takeLast(5)
+        val passCount = qualityFlags.takeLast(5).count { it == "PASS" }
+
+        val finalBpm = median(stableBpms)
+        val finalConf = median(stableConfs)
+        val finalSqi = median(stableSqi)
+
+        if (passCount < 2 || finalSqi < 35.0) {
+            abort("Signal corrupted by finger motion or low optical contrast. Please hold your finger still and re-measure.")
+            return
+        }
 
         val zone = when {
             finalBpm < 60 -> ZoneLabel.BRADYCARDIA
@@ -295,6 +311,7 @@ class MeasurementViewModel : ViewModel() {
         movementDetector.reset()
         greenBuffer.clear(); redBuffer.clear(); timestamps.clear()
         bpmReadings.clear(); confReadings.clear()
+        sqiReadings.clear(); qualityFlags.clear()
         stableFrames = 0; absentFrames = 0
         measurementStarted = false
         stabilizationPct = 0

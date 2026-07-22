@@ -8,7 +8,9 @@ data class PyEnsembleResult(
     val greenBpm: Double,
     val redBpm: Double,
     val pcaBpm: Double,
-    val confidence: Double
+    val confidence: Double,
+    val signalQualityIndex: Double,
+    val qualityFlag: String
 )
 
 /**
@@ -27,12 +29,19 @@ object PyPpgBridge {
 
     fun analyze(green: DoubleArray, red: DoubleArray, fps: Double): PyEnsembleResult {
         val result: PyObject = module.callAttr("analyze", green, red, fps)
+        val consensus = result.callAttr("get", "consensus_bpm").toDouble()
+        val conf = result.callAttr("get", "confidence").toDouble()
+        val sqi = try { result.callAttr("get", "signal_quality_index")?.toDouble() ?: conf } catch (_: Exception) { conf }
+        val flag = try { result.callAttr("get", "quality_flag")?.toString() ?: "PASS" } catch (_: Exception) { "PASS" }
+
         return PyEnsembleResult(
-            consensusBpm = result.callAttr("get", "consensus_bpm").toDouble(),
-            greenBpm = result.callAttr("get", "green_bpm").toDouble(),
-            redBpm = result.callAttr("get", "red_bpm").toDouble(),
-            pcaBpm = result.callAttr("get", "pca_bpm").toDouble(),
-            confidence = result.callAttr("get", "confidence").toDouble()
+            consensusBpm = consensus,
+            greenBpm = try { result.callAttr("get", "green_bpm").toDouble() } catch (_: Exception) { consensus },
+            redBpm = try { result.callAttr("get", "red_bpm").toDouble() } catch (_: Exception) { consensus },
+            pcaBpm = try { result.callAttr("get", "pca_bpm").toDouble() } catch (_: Exception) { consensus },
+            confidence = conf,
+            signalQualityIndex = sqi,
+            qualityFlag = flag
         )
     }
 }

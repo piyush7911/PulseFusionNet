@@ -229,3 +229,18 @@ fun ProgressRing(progress: Float, modifier: Modifier = Modifier, strokeWidth: Fl
         )
     }
 }
+
+/** Embeds CameraX PreviewView into Jetpack Compose UI for live camera monitoring. */
+@Composable
+fun CameraLivePreview(cameraController: com.pulsefusionnet.app.camera.CameraController?, modifier: Modifier = Modifier) {
+    if (cameraController == null) return
+    androidx.compose.ui.viewinterop.AndroidView(
+        factory = { ctx ->
+            androidx.camera.view.PreviewView(ctx).apply {
+                scaleType = androidx.camera.view.PreviewView.ScaleType.FILL_CENTER
+                cameraController.attachPreview(this)
+            }
+        },
+        modifier = modifier
+    )
+}

@@ -4,6 +4,7 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.pulsefusionnet.app.ppg.FrameStats
@@ -21,6 +22,8 @@ import kotlin.math.sqrt
 class CameraController(private val onFrame: (FrameStats) -> Unit) {
 
     private var cameraProvider: ProcessCameraProvider? = null
+    private var currentLifecycleOwner: LifecycleOwner? = null
+    private var previewViewRef: PreviewView? = null
     private val analysisExecutor = Executors.newSingleThreadExecutor()
 
     // Sample every Nth pixel to bound per-frame CPU cost — a coarse grid is all the
@@ -29,7 +32,26 @@ class CameraController(private val onFrame: (FrameStats) -> Unit) {
 
     fun start(lifecycleOwner: LifecycleOwner, providerFuture: ProcessCameraProvider) {
         cameraProvider = providerFuture
-        providerFuture.unbindAll()
+        currentLifecycleOwner = lifecycleOwner
+        bindCamera()
+    }
+
+    fun attachPreview(previewView: PreviewView) {
+        previewViewRef = previewView
+        bindCamera()
+    }
+
+    fun stop() {
+        cameraProvider?.unbindAll()
+        cameraProvider = null
+        currentLifecycleOwner = null
+        previewViewRef = null
+    }
+
+    private fun bindCamera() {
+        val provider = cameraProvider ?: return
+        val owner = currentLifecycleOwner ?: return
+        provider.unbindAll()
 
         val analysis = ImageAnalysis.Builder()
             .setTargetResolution(android.util.Size(320, 240))
@@ -39,11 +61,15 @@ class CameraController(private val onFrame: (FrameStats) -> Unit) {
         analysis.setAnalyzer(analysisExecutor) { image -> processFrame(image) }
 
         val selector = CameraSelector.DEFAULT_BACK_CAMERA
-        providerFuture.bindToLifecycle(lifecycleOwner, selector, analysis)
-    }
+        val pView = previewViewRef
 
-    fun stop() {
-        cameraProvider?.unbindAll()
+        if (pView != null) {
+            val preview = androidx.camera.core.Preview.Builder().build()
+            preview.setSurfaceProvider(pView.surfaceProvider)
+            provider.bindToLifecycle(owner, selector, preview, analysis)
+        } else {
+            provider.bindToLifecycle(owner, selector, analysis)
+        }
     }
 
     private fun processFrame(image: ImageProxy) {

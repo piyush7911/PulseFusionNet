@@ -30,11 +30,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 
+import com.pulsefusionnet.app.camera.CameraController
+
 @Composable
 fun DetectingScreen(
     fingerOnLens: Boolean,
     stabilizationPct: Int,
     waveformSamples: List<Float>,
+    cameraController: CameraController? = null,
     onCancel: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -50,7 +53,7 @@ fun DetectingScreen(
         }
 
         Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-            ScanRing(active = fingerOnLens, progress = stabilizationPct / 100f)
+            ScanRing(active = fingerOnLens, progress = stabilizationPct / 100f, cameraController = cameraController)
         }
 
         GlassCard {
@@ -108,7 +111,7 @@ fun DetectingScreen(
 }
 
 @Composable
-private fun ScanRing(active: Boolean, progress: Float) {
+private fun ScanRing(active: Boolean, progress: Float, cameraController: CameraController? = null) {
     val transition = rememberInfiniteTransition(label = "scan")
     val pulse by transition.animateFloat(
         initialValue = 1f, targetValue = 1.1f,
@@ -121,17 +124,27 @@ private fun ScanRing(active: Boolean, progress: Float) {
         ProgressRing(progress = if (active) progress else 0f, modifier = Modifier.fillMaxSize().aspectRatio(1f))
         Box(
             modifier = Modifier
-                .size(84.dp)
+                .size(105.dp)
                 .clip(CircleShape)
                 .background(color.copy(alpha = 0.12f)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                PulseIcons.Fingerprint, contentDescription = null, tint = color,
+            if (cameraController != null) {
+                CameraLivePreview(cameraController = cameraController, modifier = Modifier.fillMaxSize())
+            }
+            Box(
                 modifier = Modifier
-                    .size(38.dp)
-                    .graphicsLayer { if (!active) { scaleX = pulse; scaleY = pulse } }
-            )
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.25f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    PulseIcons.Fingerprint, contentDescription = null, tint = color,
+                    modifier = Modifier
+                        .size(38.dp)
+                        .graphicsLayer { if (!active) { scaleX = pulse; scaleY = pulse } }
+                )
+            }
         }
     }
 }

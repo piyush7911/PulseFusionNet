@@ -24,6 +24,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.pulsefusionnet.app.camera.CameraController
+import androidx.compose.foundation.shape.CircleShape
+
 @Composable
 fun MeasuringScreen(
     secondsRemaining: Int,
@@ -32,7 +35,8 @@ fun MeasuringScreen(
     fingerPresent: Boolean,
     movementWarning: Boolean,
     isPaused: Boolean,
-    waveformSamples: List<Float>
+    waveformSamples: List<Float>,
+    cameraController: CameraController? = null
 ) {
     Column(
         modifier = Modifier
@@ -58,17 +62,35 @@ fun MeasuringScreen(
         Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             Box(modifier = Modifier.size(190.dp), contentAlignment = Alignment.Center) {
                 ProgressRing(progress = 1f - (secondsRemaining / 60f), modifier = Modifier.fillMaxSize())
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        "$secondsRemaining",
-                        style = MaterialTheme.typography.displayLarge,
-                        color = PulseColors.White
-                    )
-                    Text(
-                        if (isPaused) "PAUSED" else "seconds left",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (isPaused) PulseColors.Orange else PulseColors.Muted
-                    )
+                Box(
+                    modifier = Modifier
+                        .size(110.dp)
+                        .clip(CircleShape)
+                        .background(PulseColors.Card),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (cameraController != null) {
+                        CameraLivePreview(cameraController = cameraController, modifier = Modifier.fillMaxSize())
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.35f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                "$secondsRemaining",
+                                style = MaterialTheme.typography.displayLarge.copy(fontSize = 36.sp),
+                                color = PulseColors.White
+                            )
+                            Text(
+                                if (isPaused) "PAUSED" else "sec left",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                color = if (isPaused) PulseColors.Orange else PulseColors.Muted
+                            )
+                        }
+                    }
                 }
             }
         }

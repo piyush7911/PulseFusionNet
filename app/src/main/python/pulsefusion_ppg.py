@@ -201,7 +201,7 @@ def _savgol_11(signal: np.ndarray) -> np.ndarray:
 
 # ── Preprocessing pipeline — mirrors preprocess_camera_ppg exactly ─────────────
 
-def preprocess_camera_ppg(raw_ppg, fps: float, lowcut: float = 0.7, highcut: float = 3.5):
+def preprocess_camera_ppg(raw_ppg, fps: float, lowcut: float = 0.9, highcut: float = 3.5):
     raw = np.asarray(raw_ppg, dtype=np.float64)
     if len(raw) == 0:
         return raw
@@ -240,7 +240,7 @@ def _parabolic_peak(sig: np.ndarray, idx: int) -> float:
     return idx + delta
 
 
-def extract_channel_bpm(signal, fps: float, min_bpm: float = 45.0, max_bpm: float = 170.0) -> float:
+def extract_channel_bpm(signal, fps: float, min_bpm: float = 54.0, max_bpm: float = 170.0) -> float:
     sig_arr = np.asarray(signal, dtype=np.float64)
     n = len(sig_arr)
     if n < int(fps * 3.0):
@@ -266,14 +266,31 @@ def extract_channel_bpm(signal, fps: float, min_bpm: float = 45.0, max_bpm: floa
 
     valid_freqs = freqs[mask]
     valid_vals = harmonic_fft[mask]
+    
     max_idx = int(np.argmax(valid_vals))
+    f_cand = valid_freqs[max_idx]
+    
+    # Sub-harmonic / Super-harmonic disambiguation for physiological resting range (50-130 BPM)
+    if f_cand * 60.0 > 135.0:
+        half_f = f_cand / 2.0
+        if half_f >= min_freq:
+            half_idx = int(np.argmin(np.abs(valid_freqs - half_f)))
+            if valid_vals[half_idx] > 0.40 * valid_vals[max_idx]:
+                f_cand = valid_freqs[half_idx]
+    elif f_cand * 60.0 < 52.0:
+        double_f = f_cand * 2.0
+        if double_f <= max_freq:
+            double_idx = int(np.argmin(np.abs(valid_freqs - double_f)))
+            if valid_vals[double_idx] > 0.50 * valid_vals[max_idx]:
+                f_cand = valid_freqs[double_idx]
 
-    interp_idx = _parabolic_peak(valid_vals, max_idx)
+    peak_pos = int(np.argmin(np.abs(valid_freqs - f_cand)))
+    interp_idx = _parabolic_peak(valid_vals, peak_pos)
     best_freq = valid_freqs[0] + (interp_idx / (len(valid_freqs) - 1 + 1e-6)) * (valid_freqs[-1] - valid_freqs[0])
     return float(np.clip(best_freq * 60.0, min_bpm, max_bpm))
 
 
-def extract_pca_bpm(green, red, fps: float, min_bpm: float = 45.0, max_bpm: float = 170.0) -> float:
+def extract_pca_bpm(green, red, fps: float, min_bpm: float = 54.0, max_bpm: float = 170.0) -> float:
     g = np.asarray(green, dtype=np.float64)
     r = np.asarray(red, dtype=np.float64)
     if len(g) != len(r) or len(g) == 0:
@@ -287,7 +304,7 @@ def extract_pca_bpm(green, red, fps: float, min_bpm: float = 45.0, max_bpm: floa
     return extract_channel_bpm(pc1, fps, min_bpm, max_bpm)
 
 
-def extract_ensemble_bpm(green, red, fps: float, min_bpm: float = 45.0, max_bpm: float = 170.0) -> dict:
+def extract_ensemble_bpm(green, red, fps: float, min_bpm: float = 54.0, max_bpm: float = 170.0) -> dict:
     bpm_green = extract_channel_bpm(green, fps, min_bpm, max_bpm)
     bpm_red = extract_channel_bpm(red, fps, min_bpm, max_bpm)
     bpm_pca = extract_pca_bpm(green, red, fps, min_bpm, max_bpm)
@@ -306,8 +323,67 @@ def extract_ensemble_bpm(green, red, fps: float, min_bpm: float = 45.0, max_bpm:
     }
 
 
-def analyze(green, red, fps: float) -> dict:
-    """Single entry point the Kotlin bridge calls: preprocess both channels, extract ensemble BPM."""
+def analyze_session(green, red, fps: float, win_sec: float = 6.0, step_sec: float = 1.0) -> dict:
+    """
+    Full-session sliding-window analysis:
+    Splits 60s PPG signals into sliding 6-second windows with 1-second step,
+    extracts per-window ensemble BPMs, trims top/bottom 15% outlier estimates,
+    and returns confidence-weighted session consensus.
+    """
     clean_green = preprocess_camera_ppg(green, fps)
     clean_red = preprocess_camera_ppg(red, fps)
-    return extract_ensemble_bpm(clean_green, clean_red, fps)
+    
+    n_samples = len(clean_green)
+    win_len = int(fps * win_sec)
+    step_len = int(fps * step_sec)
+    
+    if n_samples < win_len:
+        return extract_ensemble_bpm(clean_green, clean_red, fps)
+        
+    window_bpms = []
+    window_confs = []
+    
+    for start in range(0, n_samples - win_len + 1, step_len):
+        g_win = clean_green[start : start + win_len]
+        r_win = clean_red[start : start + win_len]
+        res = extract_ensemble_bpm(g_win, r_win, fps)
+        window_bpms.append(res["consensus_bpm"])
+        window_confs.append(res["confidence"])
+        
+    if len(window_bpms) == 0:
+        return extract_ensemble_bpm(clean_green, clean_red, fps)
+        
+    bpms = np.array(window_bpms)
+    confs = np.array(window_confs)
+    
+    k = len(bpms)
+    trim_cnt = int(np.floor(k * 0.20))
+    if trim_cnt > 0 and (k - 2 * trim_cnt) >= 3:
+        sort_idxs = np.argsort(bpms)
+        trimmed_idxs = sort_idxs[trim_cnt : k - trim_cnt]
+        trimmed_bpms = bpms[trimmed_idxs]
+        trimmed_confs = confs[trimmed_idxs]
+    else:
+        trimmed_bpms = bpms
+        trimmed_confs = confs
+        
+    weights = trimmed_confs / (np.sum(trimmed_confs) + 1e-6)
+    final_bpm = float(np.sum(trimmed_bpms * weights))
+    avg_conf = float(np.mean(confs))
+    
+    bpm_std = float(np.std(trimmed_bpms))
+    sqi = float(np.clip(100.0 - bpm_std * 5.0, 10.0, 99.0))
+    quality_flag = "PASS" if (avg_conf >= 50.0 and bpm_std <= 8.0) else "RETRY"
+    
+    return {
+        "consensus_bpm": final_bpm,
+        "confidence": avg_conf,
+        "signal_quality_index": sqi,
+        "quality_flag": quality_flag,
+        "num_windows": len(bpms)
+    }
+
+
+def analyze(green, red, fps: float) -> dict:
+    """Single entry point the Kotlin bridge calls: full session sliding window analysis with 20% trimming."""
+    return analyze_session(green, red, fps)
