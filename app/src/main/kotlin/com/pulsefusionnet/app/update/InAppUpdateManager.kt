@@ -35,9 +35,9 @@ data class UpdateInfo(
  */
 object InAppUpdateManager {
 
-    // Default update endpoint (GitHub Raw update.json + GitHub Releases API fallback)
-    private const val DEFAULT_UPDATE_URL = "https://raw.githubusercontent.com/piyush/PulseFusionNet/main/update.json"
-    private const val GITHUB_RELEASES_API_URL = "https://api.github.com/repos/piyush/PulseFusionNet/releases/latest"
+    // Default update endpoint (GitHub Raw android_app/update.json + GitHub Releases API fallback)
+    private const val DEFAULT_UPDATE_URL = "https://raw.githubusercontent.com/piyush7911/PulseFusionNet/main/android_app/update.json"
+    private const val GITHUB_RELEASES_API_URL = "https://api.github.com/repos/piyush7911/PulseFusionNet/releases/latest"
     private const val CURRENT_VERSION_CODE = 1
     const val CURRENT_VERSION_NAME = "v1.0.0"
 
@@ -103,7 +103,7 @@ object InAppUpdateManager {
                 val changelog = json.optString("body", "GitHub Release update.")
                 
                 // Parse assets for .apk file
-                var apkUrl = "https://github.com/piyush/PulseFusionNet/releases/latest/download/app-release.apk"
+                var apkUrl = "https://github.com/piyush7911/PulseFusionNet/releases/latest/download/app-release.apk"
                 val assets = json.optJSONArray("assets")
                 if (assets != null) {
                     for (i in 0 until assets.length()) {
