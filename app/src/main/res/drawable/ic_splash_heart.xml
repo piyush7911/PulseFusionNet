@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Static vector used as the target for the AnimatedVectorDrawable.
+  Uses named groups so the animator can target them by name.
+  The heart sits centred in a 108×108 canvas (standard adaptive-icon safe zone).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group
+        android:name="heartGroup"
+        android:pivotX="54"
+        android:pivotY="54">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M54,68.17 C54,68.17 39,59 39,49 C39,44 43.17,39.83 48.17,39.83 C50.67,39.83 52.67,41 54,42.83 C55.33,41 57.33,39.83 59.83,39.83 C64.83,39.83 69,44 69,49 C69,59 54,68.17 54,68.17 Z" />
+    </group>
+</vector>

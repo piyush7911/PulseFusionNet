@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pulse animation: scale heart 1.0 → 1.18 → 1.0 (beat rhythm, 800ms cycle) -->
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+    <objectAnimator
+        android:propertyName="scaleX"
+        android:valueFrom="1.0"
+        android:valueTo="1.18"
+        android:duration="400"
+        android:repeatCount="infinite"
+        android:repeatMode="reverse"
+        android:interpolator="@android:interpolator/accelerate_decelerate" />
+    <objectAnimator
+        android:propertyName="scaleY"
+        android:valueFrom="1.0"
+        android:valueTo="1.18"
+        android:duration="400"
+        android:repeatCount="infinite"
+        android:repeatMode="reverse"
+        android:interpolator="@android:interpolator/accelerate_decelerate" />
+</set>

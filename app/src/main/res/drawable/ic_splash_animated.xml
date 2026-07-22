@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AnimatedVectorDrawable: plays the splash_pulse scale animation on the heartGroup.
+  This is set as windowSplashScreenAnimatedIcon so Android plays it immediately
+  when the user taps the launcher icon — no Compose LoadingScreen needed at all.
+-->
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_splash_heart">
+
+    <target
+        android:name="heartGroup"
+        android:animation="@animator/splash_pulse" />
+
+</animated-vector>

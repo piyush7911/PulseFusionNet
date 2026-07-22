@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.PulseFusionNet" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.PulseFusionNet" parent="Theme.SplashScreen">
+        <!-- Dark background matching the app -->
+        <item name="windowSplashScreenBackground">#03070F</item>
+        <!-- Animated pulsing heart (AnimatedVectorDrawable) -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_animated</item>
+        <!-- Blue circle behind the heart icon, matching brand gradient -->
+        <item name="windowSplashScreenIconBackgroundColor">#2B8FEF</item>
+        <!-- Switch to real app theme after splash dismisses -->
+        <item name="postSplashScreenTheme">@style/Theme.PulseFusionNet.App</item>
+    </style>
+
+    <!-- Applied after the splash screen dismisses -->
+    <style name="Theme.PulseFusionNet.App" parent="android:Theme.Material.NoActionBar">
         <item name="android:statusBarColor">#03070F</item>
         <item name="android:navigationBarColor">#03070F</item>
         <item name="android:windowBackground">#03070F</item>

@@ -21,7 +21,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,12 +28,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.pulsefusionnet.app.camera.CameraController
 import com.pulsefusionnet.app.camera.getCameraProvider
 import com.pulsefusionnet.app.ui.DetectingScreen
 import com.pulsefusionnet.app.ui.FailedScreen
 import com.pulsefusionnet.app.ui.HomeScreen
-import com.pulsefusionnet.app.ui.LoadingScreen
 import com.pulsefusionnet.app.ui.MeasuringScreen
 import com.pulsefusionnet.app.ui.PermissionScreen
 import com.pulsefusionnet.app.ui.PulseColors
@@ -50,7 +49,16 @@ class MainActivity : ComponentActivity() {
         ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Install splash screen BEFORE super.onCreate so it appears immediately on tap.
+        // Keep it visible until the ViewModel finishes its init check.
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        // As soon as the app is ready (LOADING done), dismiss the OS splash.
+        splashScreen.setKeepOnScreenCondition { viewModel.journey == Journey.LOADING }
+
+        // Immediately resolve loading state — no artificial delay needed
+        viewModel.finishLoading(hasCameraPermission())
 
         val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) {
@@ -64,11 +72,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             PulseFusionTheme {
                 val lifecycleOwner = LocalLifecycleOwner.current
-
-                LaunchedEffect(Unit) {
-                    kotlinx.coroutines.delay(900)
-                    viewModel.finishLoading(hasCameraPermission())
-                }
 
                 val mainHandler = remember { android.os.Handler(android.os.Looper.getMainLooper()) }
                 val cameraController = remember {
@@ -103,7 +106,7 @@ class MainActivity : ComponentActivity() {
                         label = "journey"
                     ) { journey ->
                         when (journey) {
-                            Journey.LOADING -> LoadingScreen()
+                            Journey.LOADING -> { /* OS splash screen covers this — no Compose needed */ }
 
                             Journey.PERMISSION -> PermissionScreen(
                                 wasDenied = permissionDenied,
