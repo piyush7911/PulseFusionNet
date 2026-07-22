@@ -1,6 +1,6 @@
 {
-  "versionCode": 1,
-  "versionName": "v1.0.0",
-  "changelog": "Initial Release v1.0.0 — Multi-Domain On-Device PPG Vital Sign Monitor.",
+  "versionCode": 2,
+  "versionName": "v1.1.0",
+  "changelog": "v1.1.0 — Added Scanning Guidance Card (54-135 BPM Range & Post-Exercise 3-min Tip), In-App Auto Update System, and Multi-Domain Engine Upgrades.",
   "downloadUrl": "https://github.com/piyush7911/PulseFusionNet/releases/latest/download/app-release.apk"
 }

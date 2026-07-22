@@ -237,6 +237,29 @@
       white-space: nowrap;
     }
 
+    .btn-download-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #fff;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      border: none;
+      padding: 6px 14px;
+      border-radius: 20px;
+      text-decoration: none;
+      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.38);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-download-nav:hover {
+      transform: translateY(-1.5px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.55);
+      color: #fff;
+    }
+
     /* ── Section 1: Hero Layout ─────────────────────────────── */
     #hero {
       justify-content: flex-start;
@@ -713,8 +736,33 @@
       margin-top: 6px;
     }
 
-    /* Media query breakpoints */
-    @media (max-width: 1100px) {
+    /* ── Responsive Breakpoints & Mobile Adaptivity ───────── */
+    @media (max-width: 1024px) {
+      .row-grid.grid-5 {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+
+      .row-grid.grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .vh-section {
+        min-height: auto !important;
+        height: auto !important;
+        padding: clamp(50px, 7vh, 75px) 0 clamp(20px, 3vh, 35px);
+      }
+
+      .hero-inner,
+      .merged-inner,
+      .trust-inner {
+        min-height: auto !important;
+        height: auto !important;
+      }
+
       .row-section {
         grid-template-columns: 1fr;
         gap: 16px;
@@ -723,93 +771,140 @@
       .row-head {
         text-align: center;
         max-width: 600px;
-        margin: 0 auto;
-      }
-    }
-
-    @media (max-width: 800px) {
-      .row-grid.grid-5 {
-        grid-template-columns: repeat(3, 1fr);
+        margin: 0 auto 20px;
       }
 
-      .row-grid.grid-4 {
+      .bento-subgrid {
         grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
       }
     }
 
-    @media (max-width: 580px) {
+    @media (max-width: 640px) {
+      .nav-tag {
+        display: none;
+      }
+
+      .btn-download-nav {
+        padding: 5px 10px;
+        font-size: 0.72rem;
+      }
+
+      .brand {
+        font-size: 0.92rem;
+        gap: 7px;
+      }
+
+      .brand-mark {
+        width: 24px;
+        height: 24px;
+      }
 
       .row-grid.grid-5,
       .row-grid.grid-4 {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
       }
 
-      .merged-inner {
-        height: auto;
+      .step-card {
+        padding: 12px 14px;
       }
-    }
 
-    border-radius: 8px;
-    white-space: nowrap;
+      .step-card .tile-title {
+        font-size: 0.85rem;
+      }
+
+      .step-card .tile-body {
+        font-size: 0.76rem;
+        line-height: 1.35;
+      }
+
+      .m-card {
+        padding: 12px 14px;
+      }
+
+      .section-head {
+        margin-bottom: 10px;
+      }
+
+      .metric-num {
+        font-size: 0.95rem;
+      }
+
+      .metric-desc {
+        font-size: 0.76rem;
+        line-height: 1.35;
+      }
+
+      .hero-left {
+        text-align: center;
+      }
+
+      .eyebrow {
+        justify-content: center;
+      }
+
+      .hero-actions {
+        justify-content: center;
+        flex-direction: column;
+        width: 100%;
+        gap: 10px;
+      }
+
+      .hero-actions .btn-primary,
+      .hero-actions .btn-ghost {
+        width: 100%;
+        justify-content: center;
+      }
     }
 
     /* ── Section 3: Trust & Footer ──────────────────────────── */
     #trust {
-      justify-content: space-between;
-      padding-top: clamp(24px, 4vh, 48px);
-      padding-bottom: clamp(16px, 2.5vh, 28px);
+      min-height: auto;
+      height: auto;
+      padding-top: clamp(40px, 6vh, 64px);
+      padding-bottom: 28px;
     }
 
     .trust-inner {
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      gap: clamp(18px, 2.4vh, 28px);
-      height: 100%;
-      min-height: calc(100vh - clamp(40px, 6.5vh, 76px));
+      min-height: auto;
+      height: auto;
+      gap: 18px;
       position: relative;
       z-index: 1;
     }
 
+    /* Mobile-first: 2 columns. Featured = full-width. Sub-tiles = 1 col each (2×2). */
     .bento-trust {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 14px;
     }
 
-    .bento-subgrid {
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
-
-    @media (max-width: 900px) {
-      .bento-subgrid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 640px) {
-      .bento-trust {
-        grid-template-columns: 1fr;
-      }
-
-      .bento-subgrid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .m-card {
-      padding: 16px 20px;
-    }
-
     .m-card.featured-acc {
-      grid-column: span 2;
+      grid-column: 1 / -1;
       background: linear-gradient(135deg, rgba(59, 130, 246, 0.14), rgba(6, 182, 212, 0.08));
       border-color: rgba(59, 130, 246, 0.32);
     }
 
+    .m-card.sub-tile {
+      grid-column: span 1;
+    }
+
+    /* Desktop: switch to 4-col so featured cards are side-by-side */
+    @media (min-width: 769px) {
+      .bento-trust {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .m-card.featured-acc {
+        grid-column: span 2;
+      }
+    }
+    .m-card {
+      padding: 16px 20px;
+    }
     .metric-num {
       font-family: var(--font-mono);
       font-weight: 700;
@@ -830,8 +925,9 @@
 
     /* ── Footer ─────────────────────────────────────────────── */
     footer {
-      padding-top: 16px;
-      margin-top: auto;
+      padding-top: 24px;
+      margin-top: 40px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -893,13 +989,23 @@
         </div>
         PulseFusionNet
       </div>
-      <div class="nav-tag">Just light. Just math.</div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="nav-tag">Just light. Just math.</div>
+        <a class="btn-download-nav" href="https://github.com/piyush7911/PulseFusionNet/releases/download/v1.0.0/app-release-1.0.0.apk" target="_blank" rel="noopener noreferrer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download App
+        </a>
+      </div>
     </div>
   </nav>
 
   <!-- ══════════════════════════════════════════════════════════
      SECTION 1: HERO / START LANDING SECTION (100vh)
-══════════════════════════════════════════════════════════ -->
+ ══════════════════════════════════════════════════════════ -->
   <header class="vh-section" id="hero">
     <div class="wrap hero-inner">
 
@@ -913,14 +1019,15 @@
             calculating your heart rate with high precision—completely offline, directly on your device.
           </p>
           <div class="hero-actions">
-            <a class="btn-primary" href="#how">
-              See how it works
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
-                stroke-linecap="round">
-                <path d="M5 12h13M13 6l6 6-6 6" />
+            <a class="btn-primary" href="https://github.com/piyush7911/PulseFusionNet/releases/download/v1.0.0/app-release-1.0.0.apk" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, var(--blue), var(--cyan)); color: #fff;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
+              Download Android App
             </a>
-            <a class="btn-ghost" href="#trust">How sure can you be?</a>
+            <a class="btn-ghost" href="#how">See how it works</a>
           </div>
         </div>
 
@@ -946,7 +1053,7 @@
   </header>
 
   <!-- ══════════════════════════════════════════════════════════
-     SECTION 2: MERGED HOW IT WORKS & UNDER THE HOOD (100vh)
+     SECTION 2: HOW IT WORKS & UNDER THE HOOD
 ══════════════════════════════════════════════════════════ -->
   <section id="how" class="vh-section">
     <div class="wrap merged-inner">
@@ -968,34 +1075,29 @@
             <div class="step-card glass">
               <span class="tile-index num">02</span>
               <div class="tile-title">Optical Sampling</div>
-              <div class="tile-body">The camera records at 30 frames per second to capture variations in light
-                transmission.</div>
-              <span class="tile-tag">green + red channel</span>
+              <div class="tile-body">The camera records at 30 frames per second to capture variations in light transmission.</div>
             </div>
             <div class="step-card glass">
               <span class="tile-index num">03</span>
               <div class="tile-title">Adaptive Denoising</div>
-              <div class="tile-body">Wavelet denoising isolates cardiac frequencies, stripping away tremors and ambient
-                flicker.</div>
+              <div class="tile-body">Wavelet denoising isolates cardiac frequencies, stripping away tremors and ambient flicker.</div>
             </div>
             <div class="step-card glass">
               <span class="tile-index num">04</span>
               <div class="tile-title">Spectral Extraction</div>
-              <div class="tile-body">FFT decomposes the pulse wave into frequency components to identify the dominant
-                heartbeat.</div>
+              <div class="tile-body">FFT decomposes the pulse wave into frequency components to identify the dominant heartbeat.</div>
             </div>
             <div class="step-card glass">
               <span class="tile-index num">05</span>
               <div class="tile-title">Consensus Filtering</div>
-              <div class="tile-body">Snapshots are analyzed continuously. Outliers are filtered to ensure a highly
-                accurate, stable average.</div>
+              <div class="tile-body">Snapshots are analyzed continuously. Outliers are filtered to ensure a highly accurate, stable average.</div>
             </div>
           </div>
         </div>
 
         <!-- ROW 2: Under the hood -->
         <div class="row-section reveal">
-          <div class="row-head">
+          <div class="row-head" style="margin-top: 24px;">
             <span class="section-eyebrow">Under the hood</span>
             <h2>Privacy by Design</h2>
             <p class="section-sub">The entire algorithm runs locally on your device.</p>
@@ -1004,8 +1106,7 @@
           <div class="row-grid grid-4">
             <div class="glass c-card">
               <div class="tile-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                  stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M5 12.55a11 11 0 0 1 14.08 0" />
                   <path d="M1.42 9a16 16 0 0 1 21.16 0" />
                   <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
@@ -1014,41 +1115,40 @@
                 </svg>
               </div>
               <div class="tile-title">100% Offline Capability</div>
-              <div class="tile-body">Operates seamlessly without active cellular data or Wi-Fi, keeping you fully
-                functional anywhere in the world.</div>
+              <div class="tile-body">Operates seamlessly without active cellular data or Wi-Fi, keeping you fully functional anywhere.</div>
             </div>
             <div class="glass c-card">
               <div class="tile-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                  stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 8h16M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2M4 8v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
                   <circle cx="12" cy="14" r="3" />
                 </svg>
               </div>
               <div class="tile-title">Transient Processing</div>
-              <div class="tile-body">Video frames are processed in-memory (RAM) in real time and immediately discarded.
-                No video is ever recorded, stored, or transmitted.</div>
+              <div class="tile-body">Video frames process in RAM in real time and are immediately discarded. No video is recorded or stored.</div>
             </div>
             <div class="glass c-card">
               <div class="tile-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
-                  stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
                   <circle cx="12" cy="12" r="5" />
                 </svg>
               </div>
               <div class="tile-title">Passive Sensing</div>
-              <div class="tile-body">Uses ambient light alone to resolve the blood volume signal—preventing phone
-                heating and excessive battery drain.</div>
+              <div class="tile-body">Uses ambient light alone to resolve blood volume signal—preventing phone heating or battery drain.</div>
             </div>
 
-            <div class="glass tech-badge-card">
-              <div>
-                <div class="tech-badge-title">Native Processing Engine</div>
-                <div class="tech-badge-sub">Optimized DWT and FFT algorithms process signals directly in native memory.
-                </div>
+            <div class="glass c-card tech-badge-card">
+              <div class="tile-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="4" width="16" height="16" rx="2" />
+                  <rect x="9" y="9" width="6" height="6" rx="1" />
+                  <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
+                </svg>
               </div>
-              <span class="tech-badge-tag">30 FPS COMPUTE</span>
+              <div class="tile-title">Native Processing Engine</div>
+              <div class="tile-body">Optimized DWT and FFT algorithms process signals directly in native memory.</div>
+              <span class="tile-tag">30 FPS COMPUTE</span>
             </div>
           </div>
         </div>
@@ -1068,34 +1168,32 @@
       </div>
 
       <div class="bento-trust">
-        <!-- TOP ROW: 2 FEATURED ACCURACY CARDS SIDE-BY-SIDE -->
+        <!-- TOP ROW: 2 FEATURED ACCURACY CARDS -->
         <div class="glass m-card featured-acc reveal">
-          <div class="metric-num">0.61 BPM <span>MAE (Clean Subgroup)</span></div>
-          <div class="metric-desc">High-precision clinical benchmark evaluated on 44 clean PPG subjects (83.0% of PhysioNet BIDMC dataset; Pearson r = 0.9951, 95% Limits of Agreement [−1.12, +1.34] BPM).</div>
+          <div class="metric-num">0.76 BPM <span>MAE (Smartphone Video)</span></div>
+          <div class="metric-desc">High-precision smartphone benchmark evaluated on 21 real finger-camera subjects (Welltory PPG dataset; Pearson r = 0.9895, 95.2% clinical pass rate against Polar H10 chest-strap ECG reference).</div>
         </div>
         <div class="glass m-card featured-acc reveal" style="border-color: rgba(6, 182, 212, 0.35);">
-          <div class="metric-num">3.91 BPM <span>MAE (Full 53 Cohort)</span></div>
-          <div class="metric-desc">Full-cohort benchmark evaluated across all 53 human subjects in PhysioNet BIDMC including raw motion &amp; ICU ventilator signals (Pearson r = 0.7004, RMSE = 10.47 BPM).</div>
+          <div class="metric-num">0.61 BPM <span>MAE (PhysioNet BIDMC)</span></div>
+          <div class="metric-desc">Clinical benchmark evaluated across all 53 human subjects in PhysioNet BIDMC (0.61 BPM MAE clean subgroup / 3.84 BPM MAE full cohort including ICU motion signals; Pearson r = 0.9951).</div>
         </div>
 
-        <!-- SECOND ROW: 4 FEATURE TILES SUBGRID -->
-        <div class="bento-subgrid">
-          <div class="glass m-card reveal">
-            <div class="metric-num">Triple <span>Consensus</span></div>
-            <div class="metric-desc">Green, red, and PCA components analyzed independently to filter noise.</div>
-          </div>
-          <div class="glass m-card reveal">
-            <div class="metric-num">Live <span>Viewfinder</span></div>
-            <div class="metric-desc">Real-time CameraX preview lens provides instant placement guidance.</div>
-          </div>
-          <div class="glass m-card reveal">
-            <div class="metric-num">Statistical <span>Trimming</span></div>
-            <div class="metric-desc">Top &amp; bottom 20% of sliding snapshots automatically trimmed.</div>
-          </div>
-          <div class="glass m-card reveal">
-            <div class="metric-num">SQI Quality <span>Gating</span></div>
-            <div class="metric-desc">Automated Signal Quality Indexing with PASS/RETRY quality gating.</div>
-          </div>
+        <!-- BOTTOM ROW: 4 FEATURE TILES (flat in grid, no wrapper) -->
+        <div class="glass m-card sub-tile reveal">
+          <div class="metric-num">Multi-Domain <span>Fusion</span></div>
+          <div class="metric-desc">FFT + Autocorrelation (ACF) lag fusion with IMU motion cancellation.</div>
+        </div>
+        <div class="glass m-card sub-tile reveal">
+          <div class="metric-num">Live <span>Viewfinder</span></div>
+          <div class="metric-desc">Real-time CameraX preview lens provides instant placement guidance.</div>
+        </div>
+        <div class="glass m-card sub-tile reveal">
+          <div class="metric-num">Statistical <span>Trimming</span></div>
+          <div class="metric-desc">Top &amp; bottom 20% of sliding snapshots automatically trimmed.</div>
+        </div>
+        <div class="glass m-card sub-tile reveal">
+          <div class="metric-num">SQI Quality <span>Gating</span></div>
+          <div class="metric-desc">Automated Signal Quality Indexing with PASS/RETRY quality gating.</div>
         </div>
       </div>
 

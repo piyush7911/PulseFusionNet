@@ -147,6 +147,8 @@ fun HomeScreen(onStart: () -> Unit) {
             }
         }
 
+        GuidanceCard()
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -162,6 +164,58 @@ fun HomeScreen(onStart: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = PulseColors.Muted
             )
+        }
+    }
+}
+
+@Composable
+private fun GuidanceCard() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(PulseColors.Card)
+            .padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(PulseIcons.Pin, contentDescription = null, tint = PulseColors.Cyan, modifier = Modifier.size(18.dp))
+            Text("Scanning Guidance", style = MaterialTheme.typography.titleMedium, color = PulseColors.White)
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(PulseColors.Cyan.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(PulseIcons.Target, contentDescription = null, tint = PulseColors.Cyan, modifier = Modifier.size(12.dp))
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("Reliable Range: 54 – 135 BPM", style = MaterialTheme.typography.titleSmall, color = PulseColors.White)
+                Text("Optimized for still resting measurement on smartphone camera optical sensors.", style = MaterialTheme.typography.bodySmall, color = PulseColors.Muted2)
+            }
+        }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(PulseColors.Cyan.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(PulseIcons.Clock, contentDescription = null, tint = PulseColors.Cyan, modifier = Modifier.size(12.dp))
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("Post-Exercise Tip (Wait 3 Mins)", style = MaterialTheme.typography.titleSmall, color = PulseColors.White)
+                Text("After heavy exercise, rest for 3 minutes before measuring for your pulse to stabilize.", style = MaterialTheme.typography.bodySmall, color = PulseColors.Muted2)
+            }
         }
     }
 }
