@@ -199,6 +199,81 @@ def _savgol_11(signal: np.ndarray) -> np.ndarray:
     return out
 
 
+def cancel_imu_motion_artifacts(
+    raw_ppg: np.ndarray,
+    accel_x: np.ndarray = None,
+    accel_y: np.ndarray = None,
+    accel_z: np.ndarray = None,
+    fps: float = 30.0,
+    filter_order: int = 12,
+    mu: float = 0.05
+) -> np.ndarray:
+    """
+    Normalized Least Mean Squares (NLMS) Adaptive Motion Cancellation Filter (Option 4).
+    Cancels motion-correlated optical noise from raw PPG signals using 3-axis IMU accelerometer inputs.
+    
+    Mathematical Formulation:
+      y[n] = sum_{k=0}^{P-1} (w_{x,k} A_x[n-k] + w_{y,k} A_y[n-k] + w_{z,k} A_z[n-k])
+      e[n] = ppg[n] - y[n]   (Clean Motion-Cancelled Signal)
+      w[n+1] = w[n] + (mu / (||A[n]||^2 + eps)) * e[n] * A[n]
+    """
+    sig = np.asarray(raw_ppg, dtype=np.float64)
+    if accel_x is None or accel_y is None or accel_z is None:
+        return sig
+    
+    ax = np.asarray(accel_x, dtype=np.float64)
+    ay = np.asarray(accel_y, dtype=np.float64)
+    az = np.asarray(accel_z, dtype=np.float64)
+
+    if len(ax) != len(sig) or len(ay) != len(sig) or len(az) != len(sig) or len(sig) < filter_order:
+        return sig  # Fallback gracefully if array lengths mismatch or signal is short
+
+    # Bandpass filter IMU acceleration signals to cardiac/motion band (0.5 - 5.0 Hz)
+    nyquist = 0.5 * fps
+    low = 0.5 / nyquist
+    high = min(0.95, 5.0 / nyquist)
+    b, a = _butter_bandpass(3, low, high)
+    
+    ax_f = _filtfilt(b, a, ax - np.mean(ax))
+    ay_f = _filtfilt(b, a, ay - np.mean(ay))
+    az_f = _filtfilt(b, a, az - np.mean(az))
+
+    n = len(sig)
+    clean_ppg = np.zeros(n, dtype=np.float64)
+
+    # Weights for 3 axes x filter_order
+    weights = np.zeros((3, filter_order), dtype=np.float64)
+
+    for i in range(filter_order, n):
+        # Extract delay buffers
+        buf_x = ax_f[i - filter_order + 1 : i + 1][::-1]
+        buf_y = ay_f[i - filter_order + 1 : i + 1][::-1]
+        buf_z = az_f[i - filter_order + 1 : i + 1][::-1]
+
+        # Predicted motion artifact estimate
+        motion_est = (
+            np.dot(weights[0], buf_x) +
+            np.dot(weights[1], buf_y) +
+            np.dot(weights[2], buf_z)
+        )
+
+        # Error signal (Desired PPG - Motion Estimate)
+        err = sig[i] - motion_est
+        clean_ppg[i] = err
+
+        # Normalization energy
+        norm_factor = np.sum(buf_x**2) + np.sum(buf_y**2) + np.sum(buf_z**2) + 1e-6
+
+        # Weight update
+        step = (mu / norm_factor) * err
+        weights[0] += step * buf_x
+        weights[1] += step * buf_y
+        weights[2] += step * buf_z
+
+    clean_ppg[:filter_order] = sig[:filter_order]
+    return clean_ppg
+
+
 # ── Preprocessing pipeline — mirrors preprocess_camera_ppg exactly ─────────────
 
 def preprocess_camera_ppg(raw_ppg, fps: float, lowcut: float = 0.9, highcut: float = 3.5):
@@ -206,8 +281,23 @@ def preprocess_camera_ppg(raw_ppg, fps: float, lowcut: float = 0.9, highcut: flo
     if len(raw) == 0:
         return raw
 
-    idx = np.arange(len(raw))
-    slope, intercept = np.polyfit(idx, raw, 1)
+    # Closed-form ordinary-least-squares linear detrend. Mathematically identical to
+    # np.polyfit(idx, raw, 1) on well-formed signals, but polyfit routes through LAPACK
+    # lstsq, which on a constant/saturated channel (real, common in the BUT PPG RGB data —
+    # scripts/test_butppg_dataset.py) emits LAPACK errors and can return NaN or raise. This
+    # form degrades gracefully: if the signal is constant (zero variance in idx is
+    # impossible for len>=2, but the signal itself may be flat), slope is 0 and it just
+    # subtracts the mean.
+    n = len(raw)
+    if n < 2:
+        return raw - np.mean(raw)
+    idx = np.arange(n, dtype=np.float64)
+    mean_idx = idx.mean()
+    mean_raw = raw.mean()
+    d_idx = idx - mean_idx
+    denom = np.sum(d_idx * d_idx)
+    slope = np.sum(d_idx * (raw - mean_raw)) / denom if denom > 1e-12 else 0.0
+    intercept = mean_raw - slope * mean_idx
     detrended = raw - (slope * idx + intercept)
 
     nyquist = 0.5 * fps
@@ -241,10 +331,17 @@ def _parabolic_peak(sig: np.ndarray, idx: int) -> float:
 
 
 def extract_channel_bpm(signal, fps: float, min_bpm: float = 54.0, max_bpm: float = 170.0) -> float:
+    # Returns NaN ("no valid estimate") rather than any fabricated number when the signal
+    # is too short or has no spectral energy in the cardiac band. NEVER invent a value: a
+    # NaN propagates up and the caller (Kotlin runAnalysis) skips the tick, so the user is
+    # only ever shown a real measurement, never a placeholder.
     sig_arr = np.asarray(signal, dtype=np.float64)
     n = len(sig_arr)
     if n < int(fps * 3.0):
-        return 70.0
+        return float("nan")
+
+    if not np.all(np.isfinite(sig_arr)):
+        return float("nan")
 
     sig = sig_arr - np.mean(sig_arr)
     n_fft = n * 4
@@ -255,7 +352,7 @@ def extract_channel_bpm(signal, fps: float, min_bpm: float = 54.0, max_bpm: floa
     max_freq = max_bpm / 60.0
     mask = (freqs >= min_freq) & (freqs <= max_freq)
     if not np.any(mask):
-        return 70.0
+        return float("nan")
 
     harmonic_fft = fft_vals.copy()
     idxs = np.where(mask)[0]
@@ -271,6 +368,20 @@ def extract_channel_bpm(signal, fps: float, min_bpm: float = 54.0, max_bpm: floa
     f_cand = valid_freqs[max_idx]
     
     # Sub-harmonic / Super-harmonic disambiguation for physiological resting range (50-130 BPM)
+    #
+    # This 0.40 half-rate threshold is LOAD-BEARING — do not "tighten" it. Two attempts:
+    #  1. Widening the BPM cutoffs 135/52 -> 120/65 (scripts/audit_diagnose_failures.py):
+    #     MAE 3.92 -> 5.81 on BIDMC. Reverted.
+    #  2. Raising the power threshold 0.40 -> 1.0 to stop it halving legitimate tachycardia
+    #     (a clean 140/150/160 comes out 70/75/80; scripts/audit_tachycardia_disambig.py):
+    #     fixed the synthetic case but REGRESSED BIDMC 3.92 -> 6.23, r 0.70 -> 0.34, because
+    #     several real BIDMC subjects have a picked peak >135 where 0.40 correctly catches a
+    #     genuine 2x-harmonic error. Reverted.
+    # Net: the >135 branch legitimately fixes more real recordings than the synthetic
+    # tachycardia it mishandles. True >135 BPM tachycardia being halved is a KNOWN, ACCEPTED
+    # limitation (logged in audit.md), not fixable by tuning this constant — it needs a
+    # genuinely better peak/harmonic discriminator, which the real data has repeatedly shown
+    # is not a one-line change.
     if f_cand * 60.0 > 135.0:
         half_f = f_cand / 2.0
         if half_f >= min_freq:
@@ -296,12 +407,131 @@ def extract_pca_bpm(green, red, fps: float, min_bpm: float = 54.0, max_bpm: floa
     if len(g) != len(r) or len(g) == 0:
         return extract_channel_bpm(g, fps, min_bpm, max_bpm)
 
+    # Guard against a degenerate covariance before eigendecomposition. On real camera data
+    # a channel can be constant or clipped (e.g. a saturated channel), which makes np.cov
+    # produce NaN/Inf and np.linalg.eigh emit LAPACK errors and return garbage. Found via
+    # the real BUT PPG RGB dataset (scripts/test_butppg_dataset.py). In that case there's no
+    # meaningful principal component to combine, so fall back to the green channel alone.
+    if np.std(g) < 1e-9 or np.std(r) < 1e-9:
+        return extract_channel_bpm(g if np.std(g) >= np.std(r) else r, fps, min_bpm, max_bpm)
+
     stacked = np.vstack([g, r])
     cov = np.cov(stacked)
+    if not np.all(np.isfinite(cov)):
+        return extract_channel_bpm(g, fps, min_bpm, max_bpm)
     eigvals, eigvecs = np.linalg.eigh(cov)
     w = eigvecs[:, int(np.argmax(eigvals))]
     pc1 = w[0] * g + w[1] * r
     return extract_channel_bpm(pc1, fps, min_bpm, max_bpm)
+
+
+def _find_simple_peaks(x, prominence: float = 0.05):
+    """Pure NumPy 1D local peak detector with prominence threshold for Chaquopy compatibility."""
+    if len(x) < 3:
+        return np.array([], dtype=int)
+    dx = np.diff(x)
+    is_max = (dx[:-1] > 0) & (dx[1:] <= 0)
+    peak_idxs = np.where(is_max)[0] + 1
+    if len(peak_idxs) == 0:
+        return np.array([], dtype=int)
+    min_val = np.min(x)
+    valid_peaks = [i for i in peak_idxs if (x[i] - min_val) >= prominence]
+    return np.array(valid_peaks, dtype=int)
+
+
+def extract_acf_bpm(signal, fps: float, min_bpm: float = 54.0, max_bpm: float = 170.0) -> float:
+    """
+    Time-domain Autocorrelation (ACF) Heart Rate Estimator.
+    Measures pulse lag directly in the time domain, providing harmonic-independent
+    disambiguation to complement frequency-domain FFT peak picking.
+    Pure NumPy implementation for zero-dependency Chaquopy deployment.
+    """
+    sig = np.asarray(signal, dtype=np.float64)
+    n = len(sig)
+    if n < int(fps * 3.0) or not np.all(np.isfinite(sig)):
+        return float("nan")
+
+    sig = sig - np.mean(sig)
+    n_fft = 2 ** int(np.ceil(np.log2(2 * n)))
+    fx = np.fft.rfft(sig, n=n_fft)
+    acf = np.fft.irfft(fx * np.conj(fx))[:n]
+    if acf[0] <= 1e-9:
+        return float("nan")
+    acf = acf / acf[0]
+
+    min_lag = int(np.floor(fps * 60.0 / max_bpm))
+    max_lag = int(np.ceil(fps * 60.0 / min_bpm))
+    max_lag = min(max_lag, n - 1)
+
+    if min_lag >= max_lag:
+        return float("nan")
+
+    search_acf = acf[min_lag : max_lag + 1]
+    if len(search_acf) == 0:
+        return float("nan")
+
+    peaks = _find_simple_peaks(search_acf, prominence=0.05)
+    if len(peaks) == 0:
+        best_lag_idx = int(np.argmax(search_acf))
+    else:
+        best_lag_idx = int(peaks[np.argmax(search_acf[peaks])])
+
+    best_lag = min_lag + best_lag_idx
+
+    if 0 < best_lag < n - 1:
+        y0, y1, y2 = acf[best_lag - 1], acf[best_lag], acf[best_lag + 1]
+        denom = y0 - 2.0 * y1 + y2
+        delta = (y0 - y2) / (2.0 * denom + 1e-9) if abs(denom) > 1e-6 else 0.0
+        refined_lag = best_lag + delta
+    else:
+        refined_lag = float(best_lag)
+
+    bpm = 60.0 * fps / (refined_lag + 1e-9)
+    return float(np.clip(bpm, min_bpm, max_bpm))
+
+
+def _compute_spectral_snr(sig, fps: float, bpm: float, min_bpm: float = 54.0, max_bpm: float = 170.0) -> float:
+    """Computes spectral peak power ratio (SNR SQI) around candidate BPM."""
+    if not np.isfinite(bpm) or len(sig) < int(fps * 3.0) or not np.all(np.isfinite(sig)):
+        return 0.5
+    s_detrend = sig - np.mean(sig)
+    n_fft = 4096
+    fft_vals = np.abs(np.fft.rfft(s_detrend, n=n_fft))
+    freqs = np.fft.rfftfreq(n_fft, d=1.0 / fps)
+    cand_hz = bpm / 60.0
+    peak_mask = (freqs >= cand_hz - 0.15) & (freqs <= cand_hz + 0.15)
+    band_mask = (freqs >= min_bpm / 60.0) & (freqs <= max_bpm / 60.0)
+    peak_pwr = np.sum(fft_vals[peak_mask] ** 2)
+    total_pwr = np.sum(fft_vals[band_mask] ** 2) + 1e-9
+    return float(np.clip(peak_pwr / total_pwr, 0.0, 1.0))
+
+
+def _compute_acf_prominence(sig, fps: float, bpm: float) -> float:
+    """Computes autocorrelation lag peak prominence at candidate BPM."""
+    if not np.isfinite(bpm) or len(sig) < int(fps * 3.0) or not np.all(np.isfinite(sig)):
+        return 0.5
+    lag = int(round(fps * 60.0 / bpm))
+    n = len(sig)
+    if lag <= 0 or lag >= n:
+        return 0.5
+    s_detrend = sig - np.mean(sig)
+    n_fft = 2 ** int(np.ceil(np.log2(2 * n)))
+    fx = np.fft.rfft(s_detrend, n=n_fft)
+    acf = np.fft.irfft(fx * np.conj(fx))[:n]
+    if acf[0] <= 1e-9:
+        return 0.5
+    acf = acf / acf[0]
+    return float(np.clip(acf[lag], 0.0, 1.0))
+
+
+def _compute_abs_skewness(sig) -> float:
+    """Computes absolute skewness of window signal for motion artifact penalization."""
+    if len(sig) < 10 or not np.all(np.isfinite(sig)):
+        return 0.0
+    std_s = np.std(sig) + 1e-9
+    if std_s < 1e-8:
+        return 0.0
+    return float(np.abs(np.mean((sig - np.mean(sig)) ** 3) / (std_s ** 3)))
 
 
 def extract_ensemble_bpm(green, red, fps: float, min_bpm: float = 54.0, max_bpm: float = 170.0) -> dict:
@@ -309,53 +539,149 @@ def extract_ensemble_bpm(green, red, fps: float, min_bpm: float = 54.0, max_bpm:
     bpm_red = extract_channel_bpm(red, fps, min_bpm, max_bpm)
     bpm_pca = extract_pca_bpm(green, red, fps, min_bpm, max_bpm)
 
-    values = sorted([bpm_green, bpm_red, bpm_pca])
-    consensus = values[1]
-    spread = values[2] - values[0]
-    confidence = float(np.clip(100.0 - spread * 3.0, 20.0, 99.0))
+    valid_fft = [v for v in (bpm_green, bpm_red, bpm_pca) if np.isfinite(v)]
+    if len(valid_fft) == 0:
+        return {
+            "consensus_bpm": float("nan"),
+            "green_bpm": bpm_green,
+            "red_bpm": bpm_red,
+            "pca_bpm": bpm_pca,
+            "acf_bpm": float("nan"),
+            "confidence": 0.0,
+        }
+
+    b_fft = float(np.median(valid_fft))
+
+    # Multi-Domain Fusion: Autocorrelation (ACF) lag peak
+    b_acf_g = extract_acf_bpm(green, fps, min_bpm, max_bpm)
+    b_acf_r = extract_acf_bpm(red, fps, min_bpm, max_bpm)
+    valid_acf = [v for v in (b_acf_g, b_acf_r) if np.isfinite(v)]
+
+    if len(valid_acf) > 0:
+        b_acf = float(np.median(valid_acf))
+        diff = abs(b_fft - b_acf)
+
+        if diff <= 4.0:
+            consensus = float(0.75 * b_fft + 0.25 * b_acf)
+        elif abs(b_fft - 2.0 * b_acf) <= 6.0:
+            # FFT locked to 2nd harmonic, ACF found true fundamental
+            consensus = float(b_acf)
+        elif abs(b_fft - 0.5 * b_acf) <= 6.0:
+            # FFT locked to sub-harmonic, ACF found true fundamental
+            consensus = float(b_acf)
+        else:
+            consensus = b_fft
+    else:
+        b_acf = float("nan")
+        consensus = b_fft
+
+    # Option 1: Learned Feature Quality Weighting Q_i
+    snr_sqi = _compute_spectral_snr(green, fps, consensus, min_bpm, max_bpm)
+    acf_prom = _compute_acf_prominence(green, fps, consensus)
+    skew = _compute_abs_skewness(green)
+
+    q_weight = (snr_sqi * 60.0) + (acf_prom * 40.0)
+    if skew > 2.0:
+        q_weight *= 0.5
+    confidence = float(np.clip(q_weight, 20.0, 99.0))
 
     return {
         "consensus_bpm": consensus,
         "green_bpm": bpm_green,
         "red_bpm": bpm_red,
         "pca_bpm": bpm_pca,
+        "acf_bpm": b_acf,
         "confidence": confidence,
     }
 
 
-def analyze_session(green, red, fps: float, win_sec: float = 6.0, step_sec: float = 1.0) -> dict:
+def _no_estimate() -> dict:
+    """The one canonical 'I could not measure this' result. consensus_bpm is NaN so the
+    caller skips it; nothing here is ever shown to a user as a real reading."""
+    return {
+        "consensus_bpm": float("nan"),
+        "confidence": 0.0,
+        "signal_quality_index": 0.0,
+        "quality_flag": "RETRY",
+        "num_windows": 0,
+    }
+
+
+def _single_window_result(clean_green, clean_red, fps) -> dict:
+    """Early-tick path (buffer shorter than one full window): one ensemble estimate, or a
+    no-estimate result if that came back NaN. Always returns the full dict shape."""
+    res = extract_ensemble_bpm(clean_green, clean_red, fps)
+    bpm = res["consensus_bpm"]
+    if not np.isfinite(bpm):
+        return _no_estimate()
+    conf = res["confidence"]
+    return {
+        "consensus_bpm": bpm,
+        "confidence": conf,
+        "signal_quality_index": conf,  # no window spread yet; fall back to agreement confidence
+        "quality_flag": "PASS" if conf >= 50.0 else "RETRY",
+        "num_windows": 1,
+    }
+
+
+def analyze_session(
+    green,
+    red,
+    fps: float,
+    accel_x: np.ndarray = None,
+    accel_y: np.ndarray = None,
+    accel_z: np.ndarray = None,
+    win_sec: float = 6.0,
+    step_sec: float = 1.0
+) -> dict:
     """
     Full-session sliding-window analysis:
-    Splits 60s PPG signals into sliding 6-second windows with 1-second step,
-    extracts per-window ensemble BPMs, trims top/bottom 15% outlier estimates,
-    and returns confidence-weighted session consensus.
+    Applies Option 4 (IMU Accelerometer Motion Cancellation) if 3-axis IMU data is provided,
+    splits the signal into sliding 6-second windows with 1-second step, extracts per-window
+    ensemble BPMs with Option 1 (Quality Weighting) & Option 2 (Adaptive Respiration Filter),
+    trims top/bottom 20% outliers, and returns a confidence-weighted consensus.
     """
+    # Option 4: IMU Accelerometer Motion Cancellation Filter
+    if accel_x is not None and accel_y is not None and accel_z is not None:
+        green = cancel_imu_motion_artifacts(green, accel_x, accel_y, accel_z, fps)
+        red = cancel_imu_motion_artifacts(red, accel_x, accel_y, accel_z, fps)
+
     clean_green = preprocess_camera_ppg(green, fps)
     clean_red = preprocess_camera_ppg(red, fps)
-    
+
+    # Option 2: Adaptive Lowcut Filtering for Respiration & Sub-harmonic Suppression.
+    # ONLY applied when both FFT and ACF confidently confirm high resting HR (>100 BPM).
+    # This prevents cutting off legitimate resting bradycardia/low HR (54-60 BPM).
+    coarse_fft = extract_channel_bpm(clean_green, fps)
+    coarse_acf = extract_acf_bpm(clean_green, fps)
+    if np.isfinite(coarse_fft) and np.isfinite(coarse_acf):
+        if coarse_fft > 100.0 and coarse_acf > 100.0 and abs(coarse_fft - coarse_acf) <= 6.0:
+            adapt_lowcut = min(1.35, max(0.9, (coarse_fft * 0.55) / 60.0))
+            clean_green = preprocess_camera_ppg(green, fps, lowcut=adapt_lowcut)
+            clean_red = preprocess_camera_ppg(red, fps, lowcut=adapt_lowcut)
+
     n_samples = len(clean_green)
     win_len = int(fps * win_sec)
-    step_len = int(fps * step_sec)
-    
+    step_len = max(1, int(fps * step_sec))
+
     if n_samples < win_len:
-        return extract_ensemble_bpm(clean_green, clean_red, fps)
-        
+        return _single_window_result(clean_green, clean_red, fps)
+
     window_bpms = []
     window_confs = []
-    
     for start in range(0, n_samples - win_len + 1, step_len):
-        g_win = clean_green[start : start + win_len]
-        r_win = clean_red[start : start + win_len]
-        res = extract_ensemble_bpm(g_win, r_win, fps)
-        window_bpms.append(res["consensus_bpm"])
-        window_confs.append(res["confidence"])
-        
+        res = extract_ensemble_bpm(clean_green[start:start + win_len], clean_red[start:start + win_len], fps)
+        bpm = res["consensus_bpm"]
+        if np.isfinite(bpm):  # drop windows with no valid estimate; never fabricate one
+            window_bpms.append(bpm)
+            window_confs.append(res["confidence"])
+
     if len(window_bpms) == 0:
-        return extract_ensemble_bpm(clean_green, clean_red, fps)
-        
+        return _no_estimate()
+
     bpms = np.array(window_bpms)
     confs = np.array(window_confs)
-    
+
     k = len(bpms)
     trim_cnt = int(np.floor(k * 0.20))
     if trim_cnt > 0 and (k - 2 * trim_cnt) >= 3:
@@ -370,10 +696,31 @@ def analyze_session(green, red, fps: float, win_sec: float = 6.0, step_sec: floa
     weights = trimmed_confs / (np.sum(trimmed_confs) + 1e-6)
     final_bpm = float(np.sum(trimmed_bpms * weights))
     avg_conf = float(np.mean(confs))
-    
+
+    # Final safety net: if aggregation somehow produced a non-finite value, return a
+    # no-estimate result rather than let a fabricated/NaN number reach the UI.
+    if not np.isfinite(final_bpm):
+        return _no_estimate()
+
     bpm_std = float(np.std(trimmed_bpms))
-    sqi = float(np.clip(100.0 - bpm_std * 5.0, 10.0, 99.0))
-    quality_flag = "PASS" if (avg_conf >= 50.0 and bpm_std <= 8.0) else "RETRY"
+    raw_bpm_std = float(np.std(bpms))
+    raw_bpm_spread = float(np.max(bpms) - np.min(bpms))
+
+    # Multiplier recalibrated from 5.0 -> 2.0 against real BIDMC data
+    # (scripts/audit_sqi_recalibration.py): at 5.0, subjects with genuinely good real-world
+    # accuracy (<1 BPM error) scored only 83-86%, which reads as "bad signal" to a user even
+    # when the reading was fine. NOTE: rescaling the multiplier can't fix the underlying
+    # correlation between bpm_std and real error (r stays ~-0.45 regardless — a property of
+    # bpm_std itself, not this constant) but it does fix the miscalibrated absolute scale, so
+    # a truly good reading no longer displays as mediocre.
+    sqi = float(np.clip(100.0 - bpm_std * 2.0, 10.0, 99.0))
+
+    # Quality gate: PASS requires high mean confidence, low trimmed bpm_std (<= 8.0),
+    # AND zero harmonic split across windows (raw spread <= 25 BPM & raw std <= 10 BPM).
+    # This catches catastrophic half-rate locks like bidmc52 where outlier trimming
+    # hid the dissenting windows that jumped between 55 BPM and 112/130 BPM.
+    is_stable = (bpm_std <= 8.0) and (raw_bpm_spread <= 25.0) and (raw_bpm_std <= 10.0)
+    quality_flag = "PASS" if (avg_conf >= 50.0 and is_stable) else "RETRY"
     
     return {
         "consensus_bpm": final_bpm,

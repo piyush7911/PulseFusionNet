@@ -50,9 +50,9 @@ class FingerDetector(
 }
 
 /**
- * Adaptive MAD-based movement detector — a frame is "movement" when its green-channel
- * frame-to-frame delta exceeds the recent Median Absolute Deviation by a wide margin.
- * MAD adapts to each person's own pulse amplitude, so it doesn't need per-user tuning.
+ * Adaptive MAD-based movement and contact detector — a frame is flagged when its green-channel
+ * frame-to-frame delta OR spatial contact-pressure variation (spatialStdR delta) exceeds the
+ * recent Median Absolute Deviation by a wide margin.
  */
 class MovementDetector(
     private val historyFrames: Int = 90,
@@ -61,31 +61,64 @@ class MovementDetector(
     val abortFrames: Int = 20
 ) {
     private val diffBuffer = ArrayDeque<Double>()
+    private val spatialDiffBuffer = ArrayDeque<Double>()
     private var prevGreen: Double? = null
+    private var prevSpatialStd: Double? = null
+
     var consecutiveMovementFrames = 0
         private set
+    var motionQualityScore: Int = 100 // 100 = perfect stillness, 0 = severe motion/contact slip
+        private set
 
-    fun update(avgG: Double): Boolean {
-        val prev = prevGreen
+    fun update(stats: FrameStats): Boolean {
+        val avgG = stats.avgG
+        val spatialStd = stats.spatialStdR
+
+        val prevG = prevGreen
+        val prevS = prevSpatialStd
         prevGreen = avgG
-        if (prev == null) return false
+        prevSpatialStd = spatialStd
 
-        val diff = kotlin.math.abs(avgG - prev)
-        diffBuffer.addLast(diff)
+        if (prevG == null || prevS == null) return false
+
+        val diffG = kotlin.math.abs(avgG - prevG)
+        val diffS = kotlin.math.abs(spatialStd - prevS)
+
+        diffBuffer.addLast(diffG)
+        spatialDiffBuffer.addLast(diffS)
+
         if (diffBuffer.size > historyFrames) diffBuffer.removeFirst()
+        if (spatialDiffBuffer.size > historyFrames) spatialDiffBuffer.removeFirst()
 
-        val sorted = diffBuffer.sorted()
-        val mad = sorted[sorted.size / 2]
-        val threshold = maxOf(mad * madMultiplier, minThreshold)
+        val sortedG = diffBuffer.sorted()
+        val madG = sortedG[sortedG.size / 2]
+        val thresholdG = maxOf(madG * madMultiplier, minThreshold)
 
-        val isMovement = diff > threshold && diffBuffer.size >= historyFrames / 2
+        val isGreenMovement = diffG > thresholdG && diffBuffer.size >= historyFrames / 2
+        val isSpatialShift = diffS > 8.0 // sudden spatial shift = finger sliding / pressure change
+
+        val isMovement = isGreenMovement || isSpatialShift
+
+        // Continuous quality score computation (100 = steady, 0 = motion spike)
+        val normG = (diffG / (thresholdG + 1e-6)).coerceIn(0.0, 3.0)
+        val normS = (diffS / 12.0).coerceIn(0.0, 2.0)
+        val penalty = ((normG * 30.0) + (normS * 20.0)).toInt()
+        motionQualityScore = (100 - penalty).coerceIn(0, 100)
+
         consecutiveMovementFrames = if (isMovement) consecutiveMovementFrames + 1 else maxOf(0, consecutiveMovementFrames - 2)
         return isMovement
     }
 
+    fun update(avgG: Double): Boolean {
+        return update(FrameStats(avgR = 150.0, avgG = avgG, avgB = 50.0, spatialStdR = 10.0))
+    }
+
     fun reset() {
         diffBuffer.clear()
+        spatialDiffBuffer.clear()
         prevGreen = null
+        prevSpatialStd = null
         consecutiveMovementFrames = 0
+        motionQualityScore = 100
     }
 }

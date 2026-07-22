@@ -27,8 +27,19 @@ object PyPpgBridge {
         Python.getInstance().getModule("pulsefusion_ppg")
     }
 
-    fun analyze(green: DoubleArray, red: DoubleArray, fps: Double): PyEnsembleResult {
-        val result: PyObject = module.callAttr("analyze", green, red, fps)
+    fun analyze(
+        green: DoubleArray,
+        red: DoubleArray,
+        fps: Double,
+        accelX: DoubleArray? = null,
+        accelY: DoubleArray? = null,
+        accelZ: DoubleArray? = null
+    ): PyEnsembleResult {
+        val result: PyObject = if (accelX != null && accelY != null && accelZ != null) {
+            module.callAttr("analyze", green, red, fps, accelX, accelY, accelZ)
+        } else {
+            module.callAttr("analyze", green, red, fps)
+        }
         val consensus = result.callAttr("get", "consensus_bpm").toDouble()
         val conf = result.callAttr("get", "confidence").toDouble()
         val sqi = try { result.callAttr("get", "signal_quality_index")?.toDouble() ?: conf } catch (_: Exception) { conf }

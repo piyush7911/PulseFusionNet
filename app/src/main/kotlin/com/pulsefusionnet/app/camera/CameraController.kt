@@ -96,8 +96,10 @@ class CameraController(private val onFrame: (FrameStats) -> Unit) {
         val vBuffer = vPlane.buffer
 
         val yRowStride = yPlane.rowStride
-        val uvRowStride = uPlane.rowStride
-        val uvPixelStride = uPlane.pixelStride
+        val uRowStride = uPlane.rowStride
+        val uPixelStride = uPlane.pixelStride
+        val vRowStride = vPlane.rowStride
+        val vPixelStride = vPlane.pixelStride
 
         var sumR = 0.0
         var sumG = 0.0
@@ -112,8 +114,8 @@ class CameraController(private val onFrame: (FrameStats) -> Unit) {
                 val yIndex = row * yRowStride + col
                 val uvRow = row / 2
                 val uvCol = col / 2
-                val uIndex = uvRow * uvRowStride + uvCol * uvPixelStride
-                val vIndex = uvRow * uvRowStride + uvCol * uvPixelStride
+                val uIndex = uvRow * uRowStride + uvCol * uPixelStride
+                val vIndex = uvRow * vRowStride + uvCol * vPixelStride
 
                 if (yIndex < yBuffer.capacity() && uIndex < uBuffer.capacity() && vIndex < vBuffer.capacity()) {
                     val yVal = (yBuffer.get(yIndex).toInt() and 0xFF)

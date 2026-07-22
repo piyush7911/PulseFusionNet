@@ -23,7 +23,10 @@ hand-rolled substitute.
 | `scipy.signal.butter` + `filtfilt` | `_butter_bandpass` / `_filtfilt` — hand-written zpk + bilinear-transform IIR design (scipy has no Android build) |
 | `pywt.wavedec` / `waverec` (sym4) | `_wavedec` / `_waverec` — self-contained sym4 DWT/IDWT + soft threshold (pywt has no Android build) |
 | `scipy.signal.savgol_filter` | `_savgol_11` — same 11-pt cubic coefficients |
-| `ClassicalPPGExtractor.extract_ensemble_bpm` | `extract_ensemble_bpm()` — **real** `numpy.fft.rfft` zero-padded spectrum, same multi-harmonic summation + parabolic interpolation + PCA-combined channel + 3-vote consensus. Not reimplemented — this is the same numpy primitive the backend effectively uses. |
+| `ClassicalPPGExtractor.extract_ensemble_bpm` | `extract_ensemble_bpm()` — **real** `numpy.fft.rfft` zero-padded spectrum + **Autocorrelation (ACF) Time-Lag Peak Estimator** + Multi-Domain Harmonic Disambiguation. |
+| **Option 1 Quality Weighting** | `_compute_spectral_snr` + `_compute_acf_prominence` + `_compute_abs_skewness` — dynamic window quality weighting $Q_i$. |
+| **Option 2 Adaptive Filtering** | `analyze_session()` — dynamic lowcut shifting ($0.90\text{ Hz} \rightarrow 1.35\text{ Hz}$) for respiration & sub-harmonic suppression on high HR ($\ge 100\text{ BPM}$). |
+| **Option 4 IMU Motion Cancellation** | `cancel_imu_motion_artifacts()` — 3-axis IMU accelerometer NLMS adaptive noise cancellation filter. Overloaded bridge in `PyPpgBridge.kt`. |
 | App.js finger/movement heuristics | `ppg/FingerMovementDetector.kt` (Kotlin) — identical thresholds, ambient light only (**no torch/flash**, same as the web app) |
 | Server-side EMA smoothing | Same α=0.30 EMA, done in `MeasurementViewModel` |
 

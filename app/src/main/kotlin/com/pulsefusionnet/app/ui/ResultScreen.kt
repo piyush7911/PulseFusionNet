@@ -115,6 +115,40 @@ fun ResultScreen(result: ResultData, onMeasureAgain: () -> Unit, onDone: () -> U
             StatTile(PulseIcons.BarChart,    "${result.sqiPct}%",                "Signal Quality")
         }
 
+        if (result.tachycardiaWarning) {
+            OutlinedCard(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.outlinedCardColors(containerColor = PulseColors.Orange.copy(alpha = 0.07f)),
+                border = BorderStroke(1.dp, PulseColors.Orange.copy(alpha = 0.35f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(
+                        PulseIcons.Warning,
+                        contentDescription = null,
+                        tint = PulseColors.Orange,
+                        modifier = Modifier.size(16.dp).padding(top = 1.dp)
+                    )
+                    androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            "If your heart felt fast during measurement",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = PulseColors.Orange
+                        )
+                        Text(
+                            "This reading may be underestimated. Consider re-measuring — optical sensors can occasionally halve very elevated rates.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = PulseColors.Muted2
+                        )
+                    }
+                }
+            }
+        }
+
         OutlinedCard(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.outlinedCardColors(containerColor = PulseColors.Surface),
