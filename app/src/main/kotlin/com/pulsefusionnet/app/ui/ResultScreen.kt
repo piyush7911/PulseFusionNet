@@ -110,9 +110,9 @@ fun ResultScreen(result: ResultData, onMeasureAgain: () -> Unit, onDone: () -> U
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            StatTile(PulseIcons.Target, "%.0f%%".format(result.confidence), "Confidence")
-            StatTile(PulseIcons.BarChart, "${result.samples}", "Readings")
-            StatTile(PulseIcons.Award, "0.60", "MAE (BPM)")
+            StatTile(PulseIcons.Target,      "%.0f%%".format(result.confidence), "Confidence")
+            StatTile(PulseIcons.Fingerprint, "${result.samples}",                "Readings")
+            StatTile(PulseIcons.BarChart,    "${result.sqiPct}%",                "Signal Quality")
         }
 
         OutlinedCard(

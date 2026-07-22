@@ -24,7 +24,8 @@ data class ResultData(
     val bpm: Double,
     val confidence: Double,
     val samples: Int,
-    val zone: ZoneLabel
+    val zone: ZoneLabel,
+    val sqiPct: Int   // Signal Quality Index 0–100 from this actual scan
 )
 
 private const val MEASURE_DURATION_SEC = 60
@@ -290,7 +291,13 @@ class MeasurementViewModel : ViewModel() {
             else -> ZoneLabel.HIGH
         }
 
-        result = ResultData(finalBpm, finalConf, bpmReadings.size, zone)
+        result = ResultData(
+            bpm = finalBpm,
+            confidence = finalConf,
+            samples = bpmReadings.size,
+            zone = zone,
+            sqiPct = finalSqi.roundToInt().coerceIn(0, 100)
+        )
         journey = Journey.RESULT
     }
 
