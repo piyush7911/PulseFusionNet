@@ -105,12 +105,12 @@ fun HomeScreen(onStart: () -> Unit) {
             ) {
                 SectionHeader(PulseIcons.Bulb, "How it works")
                 Icon(
-                    PulseIcons.ChevronDown,
+                    PulseIcons.ChevronRight,
                     contentDescription = null,
                     tint = PulseColors.Muted2,
                     modifier = Modifier
                         .size(18.dp)
-                        .graphicsLayer { rotationZ = if (showSteps) 180f else 0f }
+                        .graphicsLayer { rotationZ = if (showSteps) 90f else 0f }
                 )
             }
 
@@ -278,7 +278,7 @@ private fun InAppUpdateCard() {
                 .clip(RoundedCornerShape(12.dp))
                 .background(
                     if (status == com.pulsefusionnet.app.update.UpdateStatus.UPDATE_AVAILABLE) Brush.linearGradient(PulseColors.BrandGradient)
-                    else Brush.linearGradient(listOf(PulseColors.Card2, PulseColors.Card2))
+                    else Brush.linearGradient(listOf(PulseColors.SurfaceAlt, PulseColors.SurfaceAlt))
                 )
                 .clickable(enabled = status != com.pulsefusionnet.app.update.UpdateStatus.CHECKING && status != com.pulsefusionnet.app.update.UpdateStatus.DOWNLOADING) {
                     when (status) {
