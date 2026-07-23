@@ -1,6 +1,6 @@
 {
-  "versionCode": 2,
-  "versionName": "v1.1.0",
-  "changelog": "v1.1.0 — Fixed false movement aborts at session end, upgraded Model Confidence with cross-estimator agreement boost (matching 97% SQI), and added Scanning Guidance & Flash Toggle.",
+  "versionCode": 3,
+  "versionName": "v1.2.0",
+  "changelog": "v1.2.0 — Moved Update Checker to top bar icon button with instant status modal, persistent CI build signing, and UI optimizations.",
   "downloadUrl": "https://github.com/piyush7911/PulseFusionNet/releases/latest/download/app-release.apk"
 }

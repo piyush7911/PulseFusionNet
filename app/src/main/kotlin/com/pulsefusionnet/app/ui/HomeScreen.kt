@@ -56,6 +56,7 @@ private val STEPS = listOf(
 @Composable
 fun HomeScreen(onStart: () -> Unit) {
     var showSteps by remember { mutableStateOf(false) }
+    var showUpdateDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -81,14 +82,35 @@ fun HomeScreen(onStart: () -> Unit) {
                 }
                 Text("PulseFusionNet", style = MaterialTheme.typography.headlineMedium, color = PulseColors.White)
             }
-            StatusPill("ON-DEVICE AI", PulseColors.Blue)
+            
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Top Bar Update Icon Button
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(CircleShape)
+                        .background(PulseColors.Card)
+                        .clickable { showUpdateDialog = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        PulseIcons.Refresh,
+                        contentDescription = "Check for Updates",
+                        tint = PulseColors.Cyan,
+                        modifier = Modifier.size(17.dp)
+                    )
+                }
+                StatusPill("ON-DEVICE AI", PulseColors.Blue)
+            }
+        }
+
+        if (showUpdateDialog) {
+            UpdateDialog(onDismiss = { showUpdateDialog = false })
         }
 
         HeroHeartCard()
 
         GradientButton("Start Measurement", icon = PulseIcons.Fingerprint, onClick = onStart)
-
-        InAppUpdateCard()
 
         Column(
             modifier = Modifier
@@ -267,7 +289,7 @@ private fun HeroHeartCard() {
 }
 
 @Composable
-private fun InAppUpdateCard() {
+private fun UpdateDialog(onDismiss: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -275,108 +297,107 @@ private fun InAppUpdateCard() {
     var updateInfo by remember { mutableStateOf<com.pulsefusionnet.app.update.UpdateInfo?>(null) }
     var progressPct by remember { mutableStateOf(0) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(PulseColors.Card)
-            .padding(18.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+    // Automatically check remote update server when dialog is opened
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        status = com.pulsefusionnet.app.update.UpdateStatus.CHECKING
+        val (newStatus, info) = com.pulsefusionnet.app.update.InAppUpdateManager.checkForUpdate()
+        status = newStatus
+        updateInfo = info
+    }
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(PulseColors.Surface)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Icon(PulseIcons.CheckCircle, contentDescription = null, tint = PulseColors.Blue, modifier = Modifier.size(20.dp))
-                Text("App Version", style = MaterialTheme.typography.titleMedium, color = PulseColors.White)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(PulseIcons.Refresh, contentDescription = null, tint = PulseColors.Cyan, modifier = Modifier.size(20.dp))
+                    Text("App Update Check", style = MaterialTheme.typography.titleMedium, color = PulseColors.White)
+                }
+                StatusPill(com.pulsefusionnet.app.update.InAppUpdateManager.CURRENT_VERSION_NAME, PulseColors.Blue)
             }
-            StatusPill(com.pulsefusionnet.app.update.InAppUpdateManager.CURRENT_VERSION_NAME, PulseColors.Blue)
-        }
 
-        Text(
-            text = when (status) {
-                com.pulsefusionnet.app.update.UpdateStatus.IDLE -> "Check for new algorithm updates or automatic feature releases."
-                com.pulsefusionnet.app.update.UpdateStatus.CHECKING -> "Checking remote update server..."
-                com.pulsefusionnet.app.update.UpdateStatus.UPDATE_AVAILABLE -> "New update available: ${updateInfo?.versionName ?: "v1.1.0"} — ${updateInfo?.changelog ?: "Accuracy updates"}"
-                com.pulsefusionnet.app.update.UpdateStatus.DOWNLOADING -> "Downloading update over network... $progressPct%"
-                com.pulsefusionnet.app.update.UpdateStatus.INSTALLING -> "Launching automatic APK installation..."
-                com.pulsefusionnet.app.update.UpdateStatus.UP_TO_DATE -> "Your app is running the latest verified algorithm engine."
-                com.pulsefusionnet.app.update.UpdateStatus.ERROR -> "Network error checking update. Please try again."
-            },
-            style = MaterialTheme.typography.bodySmall,
-            color = PulseColors.Muted2
-        )
+            Text(
+                text = when (status) {
+                    com.pulsefusionnet.app.update.UpdateStatus.IDLE -> "Checking for updates..."
+                    com.pulsefusionnet.app.update.UpdateStatus.CHECKING -> "Checking remote update server..."
+                    com.pulsefusionnet.app.update.UpdateStatus.UPDATE_AVAILABLE -> "New update available: ${updateInfo?.versionName ?: "v1.2.0"}\n\n${updateInfo?.changelog ?: "Latest engine & UI improvements."}"
+                    com.pulsefusionnet.app.update.UpdateStatus.DOWNLOADING -> "Downloading update over network... $progressPct%"
+                    com.pulsefusionnet.app.update.UpdateStatus.INSTALLING -> "Launching automatic APK installation..."
+                    com.pulsefusionnet.app.update.UpdateStatus.UP_TO_DATE -> "Your app is running the latest verified algorithm engine (${com.pulsefusionnet.app.update.InAppUpdateManager.CURRENT_VERSION_NAME})."
+                    com.pulsefusionnet.app.update.UpdateStatus.ERROR -> "Network error checking update. Please try again."
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = PulseColors.Muted2
+            )
 
-        if (status == com.pulsefusionnet.app.update.UpdateStatus.DOWNLOADING) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(PulseColors.Muted2.copy(alpha = 0.2f))
+            if (status == com.pulsefusionnet.app.update.UpdateStatus.DOWNLOADING) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(PulseColors.Muted2.copy(alpha = 0.2f))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(progressPct / 100f)
+                            .fillMaxHeight()
+                            .background(Brush.horizontalGradient(PulseColors.BrandGradient))
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(progressPct / 100f)
-                        .fillMaxHeight()
-                        .background(Brush.horizontalGradient(PulseColors.BrandGradient))
-                )
-            }
-        }
+                        .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(PulseColors.SurfaceAlt)
+                        .clickable { onDismiss() }
+                        .padding(vertical = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Close", style = MaterialTheme.typography.titleSmall, color = PulseColors.White)
+                }
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(
-                    if (status == com.pulsefusionnet.app.update.UpdateStatus.UPDATE_AVAILABLE) Brush.linearGradient(PulseColors.BrandGradient)
-                    else Brush.linearGradient(listOf(PulseColors.SurfaceAlt, PulseColors.SurfaceAlt))
-                )
-                .clickable(enabled = status != com.pulsefusionnet.app.update.UpdateStatus.CHECKING && status != com.pulsefusionnet.app.update.UpdateStatus.DOWNLOADING) {
-                    when (status) {
-                        com.pulsefusionnet.app.update.UpdateStatus.IDLE,
-                        com.pulsefusionnet.app.update.UpdateStatus.UP_TO_DATE,
-                        com.pulsefusionnet.app.update.UpdateStatus.ERROR -> {
-                            status = com.pulsefusionnet.app.update.UpdateStatus.CHECKING
-                            scope.launch {
-                                val (newStatus, info) = com.pulsefusionnet.app.update.InAppUpdateManager.checkForUpdate()
-                                status = newStatus
-                                updateInfo = info
+                if (status == com.pulsefusionnet.app.update.UpdateStatus.UPDATE_AVAILABLE) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1.5f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Brush.linearGradient(PulseColors.BrandGradient))
+                            .clickable {
+                                val url = updateInfo?.downloadUrl ?: return@clickable
+                                status = com.pulsefusionnet.app.update.UpdateStatus.DOWNLOADING
+                                scope.launch {
+                                    val success = com.pulsefusionnet.app.update.InAppUpdateManager.downloadAndInstall(
+                                        context,
+                                        url,
+                                        onProgress = { p -> progressPct = p }
+                                    )
+                                    status = if (success) com.pulsefusionnet.app.update.UpdateStatus.INSTALLING else com.pulsefusionnet.app.update.UpdateStatus.ERROR
+                                }
                             }
-                        }
-                        com.pulsefusionnet.app.update.UpdateStatus.UPDATE_AVAILABLE -> {
-                            val url = updateInfo?.downloadUrl ?: return@clickable
-                            status = com.pulsefusionnet.app.update.UpdateStatus.DOWNLOADING
-                            scope.launch {
-                                val success = com.pulsefusionnet.app.update.InAppUpdateManager.downloadAndInstall(
-                                    context,
-                                    url,
-                                    onProgress = { p -> progressPct = p }
-                                )
-                                status = if (success) com.pulsefusionnet.app.update.UpdateStatus.INSTALLING else com.pulsefusionnet.app.update.UpdateStatus.ERROR
-                            }
-                        }
-                        else -> {}
+                            .padding(vertical = 12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Update Now", style = MaterialTheme.typography.titleSmall, color = PulseColors.White)
                     }
                 }
-                .padding(vertical = 12.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = when (status) {
-                    com.pulsefusionnet.app.update.UpdateStatus.IDLE -> "Check for Updates"
-                    com.pulsefusionnet.app.update.UpdateStatus.CHECKING -> "Checking Network..."
-                    com.pulsefusionnet.app.update.UpdateStatus.UPDATE_AVAILABLE -> "Update & Install Now"
-                    com.pulsefusionnet.app.update.UpdateStatus.DOWNLOADING -> "Downloading ($progressPct%)..."
-                    com.pulsefusionnet.app.update.UpdateStatus.INSTALLING -> "Installing..."
-                    com.pulsefusionnet.app.update.UpdateStatus.UP_TO_DATE -> "Up to Date (Check Again)"
-                    com.pulsefusionnet.app.update.UpdateStatus.ERROR -> "Retry Update Check"
-                },
-                style = MaterialTheme.typography.titleSmall,
-                color = PulseColors.White
-            )
+            }
         }
     }
 }

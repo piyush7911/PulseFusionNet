@@ -898,13 +898,16 @@
       .bento-trust {
         grid-template-columns: repeat(4, 1fr);
       }
+
       .m-card.featured-acc {
         grid-column: span 2;
       }
     }
+
     .m-card {
       padding: 16px 20px;
     }
+
     .metric-num {
       font-family: var(--font-mono);
       font-weight: 700;
@@ -991,7 +994,7 @@
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
         <div class="nav-tag">Just light. Just math.</div>
-        <a class="btn-download-nav" href="https://github.com/piyush7911/PulseFusionNet/releases/download/v1.0.0/app-release-1.0.0.apk" target="_blank" rel="noopener noreferrer">
+        <a class="btn-download-nav" href="https://github.com/piyush7911/PulseFusionNet/releases/latest" target="_blank" rel="noopener noreferrer">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
             <polyline points="7 10 12 15 17 10"/>
@@ -1019,7 +1022,7 @@
             calculating your heart rate with high precision—completely offline, directly on your device.
           </p>
           <div class="hero-actions">
-            <a class="btn-primary" href="https://github.com/piyush7911/PulseFusionNet/releases/download/v1.0.0/app-release-1.0.0.apk" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, var(--blue), var(--cyan)); color: #fff;">
+            <a class="btn-primary" href="https://github.com/piyush7911/PulseFusionNet/releases/latest" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, var(--blue), var(--cyan)); color: #fff;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="7 10 12 15 17 10"/>
@@ -1069,28 +1072,33 @@
           <div class="row-grid grid-5">
             <div class="step-card glass">
               <span class="tile-index num">01</span>
-              <div class="tile-title">Live Viewfinder</div>
-              <div class="tile-body">Rest your finger over the camera lens. The live viewfinder lens provides real-time placement guidance while detecting blood volume pulses.</div>
+              <div class="tile-title">Flash &amp; Lens Guidance</div>
+              <div class="tile-body">Rest your finger over the camera. Optional Flash toggle for low-ambient
+                environments, with real-time 54–135 BPM scanning range guidance.</div>
             </div>
             <div class="step-card glass">
               <span class="tile-index num">02</span>
               <div class="tile-title">Optical Sampling</div>
-              <div class="tile-body">The camera records at 30 frames per second to capture variations in light transmission.</div>
+              <div class="tile-body">The camera records at 30 frames per second to capture sub-dermal capillary light
+                transmission variations.</div>
             </div>
             <div class="step-card glass">
               <span class="tile-index num">03</span>
-              <div class="tile-title">Adaptive Denoising</div>
-              <div class="tile-body">Wavelet denoising isolates cardiac frequencies, stripping away tremors and ambient flicker.</div>
+              <div class="tile-title">NLMS Motion Cancellation</div>
+              <div class="tile-body">Option 4 3-axis accelerometer adaptive filtering cancels hand motion and contact
+                pressure shifts.</div>
             </div>
             <div class="step-card glass">
               <span class="tile-index num">04</span>
-              <div class="tile-title">Spectral Extraction</div>
-              <div class="tile-body">FFT decomposes the pulse wave into frequency components to identify the dominant heartbeat.</div>
+              <div class="tile-title">Multi-Domain Fusion</div>
+              <div class="tile-body">Combines FFT spectral decomposition with Autocorrelation (ACF) lag peaks for
+                sub-harmonic resilience.</div>
             </div>
             <div class="step-card glass">
               <span class="tile-index num">05</span>
-              <div class="tile-title">Consensus Filtering</div>
-              <div class="tile-body">Snapshots are analyzed continuously. Outliers are filtered to ensure a highly accurate, stable average.</div>
+              <div class="tile-title">Quality Consensus</div>
+              <div class="tile-body">Option 1 learned feature weighting ($Q_i$) &amp; cross-estimator agreement boost
+                ensure clinical-grade precision.</div>
             </div>
           </div>
         </div>
@@ -1099,14 +1107,15 @@
         <div class="row-section reveal">
           <div class="row-head" style="margin-top: 24px;">
             <span class="section-eyebrow">Under the hood</span>
-            <h2>Privacy by Design</h2>
-            <p class="section-sub">The entire algorithm runs locally on your device.</p>
+            <h2>Privacy &amp; System Design</h2>
+            <p class="section-sub">The entire algorithm runs locally on your device with native auto-updates.</p>
           </div>
 
           <div class="row-grid grid-4">
             <div class="glass c-card">
               <div class="tile-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                  stroke-linejoin="round">
                   <path d="M5 12.55a11 11 0 0 1 14.08 0" />
                   <path d="M1.42 9a16 16 0 0 1 21.16 0" />
                   <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
@@ -1115,40 +1124,47 @@
                 </svg>
               </div>
               <div class="tile-title">100% Offline Capability</div>
-              <div class="tile-body">Operates seamlessly without active cellular data or Wi-Fi, keeping you fully functional anywhere.</div>
+              <div class="tile-body">Operates seamlessly without active cellular data or Wi-Fi, keeping all signal
+                extraction on-device.</div>
             </div>
             <div class="glass c-card">
               <div class="tile-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                  stroke-linejoin="round">
                   <path d="M4 8h16M4 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2M4 8v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
                   <circle cx="12" cy="14" r="3" />
                 </svg>
               </div>
               <div class="tile-title">Transient Processing</div>
-              <div class="tile-body">Video frames process in RAM in real time and are immediately discarded. No video is recorded or stored.</div>
+              <div class="tile-body">Video frames process in RAM in real time and are immediately discarded. No video is
+                recorded or stored.</div>
             </div>
             <div class="glass c-card">
               <div class="tile-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                  stroke-linejoin="round">
                   <path d="M12 3v4M12 17v4M3 12h4M17 12h4" />
                   <circle cx="12" cy="12" r="5" />
                 </svg>
               </div>
-              <div class="tile-title">Passive Sensing</div>
-              <div class="tile-body">Uses ambient light alone to resolve blood volume signal—preventing phone heating or battery drain.</div>
+              <div class="tile-title">Flash &amp; Light Control</div>
+              <div class="tile-body">OFF by default for battery efficiency; toggle ON for low-light conditions to boost
+                signal SNR.</div>
             </div>
 
             <div class="glass c-card tech-badge-card">
               <div class="tile-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                  stroke-linejoin="round">
                   <rect x="4" y="4" width="16" height="16" rx="2" />
                   <rect x="9" y="9" width="6" height="6" rx="1" />
                   <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
                 </svg>
               </div>
-              <div class="tile-title">Native Processing Engine</div>
-              <div class="tile-body">Optimized DWT and FFT algorithms process signals directly in native memory.</div>
-              <span class="tile-tag">30 FPS COMPUTE</span>
+              <div class="tile-title">In-App Auto Update</div>
+              <div class="tile-body">Native engine update manager checks GitHub Releases directly for instant 1-tap
+                algorithm upgrades.</div>
+              <span class="tile-tag">v1.1.0 READY</span>
             </div>
           </div>
         </div>
@@ -1164,18 +1180,22 @@
       <div class="section-head reveal">
         <span class="section-eyebrow">Accuracy &amp; Reliability</span>
         <h2>Clinical-Grade Validation</h2>
-        <p class="section-sub">Mathematically benchmarked and verified against established physiological standards.</p>
+        <p class="section-sub">Mathematically benchmarked and verified across 158 subjects against gold-standard ECG/PPG
+          sensors.</p>
       </div>
 
       <div class="bento-trust">
         <!-- TOP ROW: 2 FEATURED ACCURACY CARDS -->
         <div class="glass m-card featured-acc reveal">
           <div class="metric-num">0.76 BPM <span>MAE (Smartphone Video)</span></div>
-          <div class="metric-desc">High-precision smartphone benchmark evaluated on 21 real finger-camera subjects (Welltory PPG dataset; Pearson r = 0.9895, 95.2% clinical pass rate against Polar H10 chest-strap ECG reference).</div>
+          <div class="metric-desc">High-precision smartphone benchmark evaluated on 21 real finger-camera subjects
+            (Welltory PPG dataset; Pearson r = 0.9895, 81.0% sub-BPM precision against Polar H10 chest-strap ECG
+            reference).</div>
         </div>
         <div class="glass m-card featured-acc reveal" style="border-color: rgba(6, 182, 212, 0.35);">
           <div class="metric-num">0.61 BPM <span>MAE (PhysioNet BIDMC)</span></div>
-          <div class="metric-desc">Clinical benchmark evaluated across all 53 human subjects in PhysioNet BIDMC (0.61 BPM MAE clean subgroup / 3.84 BPM MAE full cohort including ICU motion signals; Pearson r = 0.9951).</div>
+          <div class="metric-desc">Clinical benchmark evaluated across all 53 human subjects in PhysioNet BIDMC (0.61
+            BPM MAE clean subgroup / 3.84 BPM MAE full cohort including ICU motion signals; Pearson r = 0.9951).</div>
         </div>
 
         <!-- BOTTOM ROW: 4 FEATURE TILES (flat in grid, no wrapper) -->
@@ -1184,16 +1204,16 @@
           <div class="metric-desc">FFT + Autocorrelation (ACF) lag fusion with IMU motion cancellation.</div>
         </div>
         <div class="glass m-card sub-tile reveal">
-          <div class="metric-num">Live <span>Viewfinder</span></div>
-          <div class="metric-desc">Real-time CameraX preview lens provides instant placement guidance.</div>
+          <div class="metric-num">Flash &amp; Torch <span>Control</span></div>
+          <div class="metric-desc">OFF by default; toggle ON for low-ambient light conditions.</div>
         </div>
         <div class="glass m-card sub-tile reveal">
-          <div class="metric-num">Statistical <span>Trimming</span></div>
-          <div class="metric-desc">Top &amp; bottom 20% of sliding snapshots automatically trimmed.</div>
+          <div class="metric-num">54–135 BPM <span>Range</span></div>
+          <div class="metric-desc">Scanning guidance for still resting pulse &amp; 3-min post-exercise tip.</div>
         </div>
         <div class="glass m-card sub-tile reveal">
-          <div class="metric-num">SQI Quality <span>Gating</span></div>
-          <div class="metric-desc">Automated Signal Quality Indexing with PASS/RETRY quality gating.</div>
+          <div class="metric-num">Auto Update <span>Engine</span></div>
+          <div class="metric-desc">Native GitHub Releases update checker with automatic 1-tap APK installation.</div>
         </div>
       </div>
 
