@@ -117,14 +117,28 @@
 
     /* ── Viewport Sections ───────────────────────────────────── */
     .vh-section {
-      min-height: 100vh;
+      min-height: auto;
       display: flex;
       flex-direction: column;
       justify-content: center;
       position: relative;
-      padding: clamp(40px, 6vh, 80px) 0;
+      padding: clamp(60px, 8vh, 100px) 0;
       box-sizing: border-box;
       z-index: 1;
+    }
+
+    /* ── Specific Section Spacing Adjustments ────────────────── */
+    #hero {
+      padding-top: clamp(40px, 6vh, 70px);
+      padding-bottom: clamp(15px, 2vh, 30px);
+    }
+    #how {
+      padding-top: clamp(20px, 3vh, 40px);
+      padding-bottom: clamp(90px, 12vh, 140px);
+    }
+    #trust {
+      padding-top: clamp(80px, 10vh, 120px);
+      padding-bottom: clamp(60px, 8vh, 100px);
     }
 
     @media (max-width: 960px),
@@ -135,8 +149,8 @@
 
       .vh-section {
         height: auto;
-        min-height: 100vh;
-        padding: 48px 0;
+        min-height: auto;
+        padding: 32px 0;
       }
     }
 
@@ -750,10 +764,14 @@
     }
 
     @media (max-width: 900px) {
-      .vh-section {
+      .vh-section,
+      #hero,
+      #how,
+      #trust {
         min-height: auto !important;
         height: auto !important;
-        padding: clamp(50px, 7vh, 75px) 0 clamp(20px, 3vh, 35px);
+        padding-top: 24px !important;
+        padding-bottom: 24px !important;
       }
 
       .hero-inner,
@@ -994,11 +1012,13 @@
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
         <div class="nav-tag">Just light. Just math.</div>
-        <a class="btn-download-nav" href="https://github.com/piyush7911/PulseFusionNet/releases/latest" target="_blank" rel="noopener noreferrer">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
+        <a class="btn-download-nav" href="https://github.com/piyush7911/PulseFusionNet/releases/latest" target="_blank"
+          rel="noopener noreferrer">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
           </svg>
           Download App
         </a>
@@ -1022,11 +1042,14 @@
             calculating your heart rate with high precision—completely offline, directly on your device.
           </p>
           <div class="hero-actions">
-            <a class="btn-primary" href="https://github.com/piyush7911/PulseFusionNet/releases/latest" target="_blank" rel="noopener noreferrer" style="background: linear-gradient(135deg, var(--blue), var(--cyan)); color: #fff;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
+            <a class="btn-primary" href="https://github.com/piyush7911/PulseFusionNet/releases/latest" target="_blank"
+              rel="noopener noreferrer"
+              style="background: linear-gradient(135deg, var(--blue), var(--cyan)); color: #fff;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
               Download Android App
             </a>
@@ -1152,7 +1175,7 @@
                 signal SNR.</div>
             </div>
 
-            <div class="glass c-card tech-badge-card">
+            <div class="glass c-card">
               <div class="tile-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                   stroke-linejoin="round">
@@ -1162,9 +1185,7 @@
                 </svg>
               </div>
               <div class="tile-title">In-App Auto Update</div>
-              <div class="tile-body">Native engine update manager checks GitHub Releases directly for instant 1-tap
-                algorithm upgrades.</div>
-              <span class="tile-tag">v1.3.0 READY</span>
+              <div class="tile-body">Auto update available — one tap to use the latest algorithm engine.</div>
             </div>
           </div>
         </div>
@@ -1200,20 +1221,20 @@
 
         <!-- BOTTOM ROW: 4 FEATURE TILES (flat in grid, no wrapper) -->
         <div class="glass m-card sub-tile reveal">
-          <div class="metric-num">Multi-Domain <span>Fusion</span></div>
-          <div class="metric-desc">FFT + Autocorrelation (ACF) lag fusion with IMU motion cancellation.</div>
+          <div class="metric-num">Triple <span>Consensus</span></div>
+          <div class="metric-desc">Green, red, and PCA components analyzed independently to filter noise.</div>
         </div>
         <div class="glass m-card sub-tile reveal">
-          <div class="metric-num">Flash &amp; Torch <span>Control</span></div>
-          <div class="metric-desc">OFF by default; toggle ON for low-ambient light conditions.</div>
+          <div class="metric-num">Adaptive <span>Respiration</span></div>
+          <div class="metric-desc">Filtering suppresses sub-harmonic respiratory sinus arrhythmia.</div>
         </div>
         <div class="glass m-card sub-tile reveal">
-          <div class="metric-num">54–135 BPM <span>Range</span></div>
-          <div class="metric-desc">Scanning guidance for still resting pulse &amp; 3-min post-exercise tip.</div>
+          <div class="metric-num">Statistical <span>Trimming</span></div>
+          <div class="metric-desc">Top &amp; bottom 20% of sliding snapshots automatically trimmed.</div>
         </div>
         <div class="glass m-card sub-tile reveal">
-          <div class="metric-num">Auto Update <span>Engine</span></div>
-          <div class="metric-desc">Native GitHub Releases update checker with automatic 1-tap APK installation.</div>
+          <div class="metric-num">SQI Quality <span>Gating</span></div>
+          <div class="metric-desc">Automated Signal Quality Indexing with PASS/RETRY quality gating.</div>
         </div>
       </div>
 

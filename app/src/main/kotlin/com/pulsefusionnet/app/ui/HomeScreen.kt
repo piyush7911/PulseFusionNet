@@ -239,6 +239,22 @@ private fun GuidanceCard() {
                 Text("After heavy exercise, rest for 3 minutes before measuring for your pulse to stabilize.", style = MaterialTheme.typography.bodySmall, color = PulseColors.Muted2)
             }
         }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Top) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(PulseColors.Cyan.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(PulseIcons.Warning, contentDescription = null, tint = PulseColors.Cyan, modifier = Modifier.size(12.dp))
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("Elevated Heart Rate Tip", style = MaterialTheme.typography.titleSmall, color = PulseColors.White)
+                Text("If your heart felt fast during measurement, wait 3 minutes and re-measure while sitting comfortably.", style = MaterialTheme.typography.bodySmall, color = PulseColors.Muted2)
+            }
+        }
     }
 }
 

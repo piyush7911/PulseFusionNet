@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.LaunchedEffect
+import androidx.activity.compose.BackHandler
 
 import com.pulsefusionnet.app.camera.CameraController
 
@@ -48,6 +49,8 @@ fun DetectingScreen(
     cameraController: CameraController? = null,
     onCancel: () -> Unit
 ) {
+    BackHandler { onCancel() }
+
     // Keep camera torch in sync with isFlashEnabled state
     LaunchedEffect(isFlashEnabled, cameraController) {
         cameraController?.setTorchEnabled(isFlashEnabled)
@@ -74,21 +77,21 @@ fun DetectingScreen(
             Row(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(if (isFlashEnabled) PulseColors.Orange.copy(alpha = 0.25f) else PulseColors.Card)
+                    .background(if (isFlashEnabled) PulseColors.Orange.copy(alpha = 0.30f) else PulseColors.SurfaceAlt)
                     .clickable { onToggleFlash() }
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                    .padding(horizontal = 14.dp, vertical = 7.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Icon(
-                    PulseIcons.Sparkle, contentDescription = "Flash Toggle",
-                    tint = if (isFlashEnabled) PulseColors.Orange else PulseColors.Muted,
+                    PulseIcons.Flash, contentDescription = "Flash Toggle",
+                    tint = if (isFlashEnabled) PulseColors.Orange else PulseColors.White,
                     modifier = Modifier.size(16.dp)
                 )
                 Text(
                     if (isFlashEnabled) "Flash ON" else "Flash OFF",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isFlashEnabled) PulseColors.Orange else PulseColors.Muted
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (isFlashEnabled) PulseColors.Orange else PulseColors.White
                 )
             }
         }

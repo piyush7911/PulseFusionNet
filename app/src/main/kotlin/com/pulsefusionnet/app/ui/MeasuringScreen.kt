@@ -70,21 +70,21 @@ fun MeasuringScreen(
                 Row(
                     modifier = Modifier
                         .clip(CircleShape)
-                        .background(if (isFlashEnabled) PulseColors.Orange.copy(alpha = 0.25f) else PulseColors.Card)
+                        .background(if (isFlashEnabled) PulseColors.Orange.copy(alpha = 0.30f) else PulseColors.SurfaceAlt)
                         .clickable { onToggleFlash() }
-                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                        .padding(horizontal = 12.dp, vertical = 5.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     Icon(
-                        PulseIcons.Sparkle, contentDescription = "Flash Toggle",
-                        tint = if (isFlashEnabled) PulseColors.Orange else PulseColors.Muted,
+                        PulseIcons.Flash, contentDescription = "Flash Toggle",
+                        tint = if (isFlashEnabled) PulseColors.Orange else PulseColors.White,
                         modifier = Modifier.size(14.dp)
                     )
                     Text(
                         if (isFlashEnabled) "Flash ON" else "Flash OFF",
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                        color = if (isFlashEnabled) PulseColors.Orange else PulseColors.Muted
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isFlashEnabled) PulseColors.Orange else PulseColors.White
                     )
                 }
 

@@ -153,14 +153,19 @@ object PulseIcons {
 
     val Refresh: ImageVector by lazy {
         icon("Refresh") {
-            stroke {
-                moveTo(3f, 12f); curveTo(3f, 7f, 7f, 3f, 12f, 3f); curveTo(14.4f, 3f, 16.6f, 3.9f, 18.2f, 5.4f)
-            }
-            stroke { moveTo(21f, 3f); lineTo(21f, 9f); lineTo(15f, 9f) }
-            stroke {
-                moveTo(21f, 12f); curveTo(21f, 17f, 17f, 21f, 12f, 21f); curveTo(9.6f, 21f, 7.4f, 20.1f, 5.8f, 18.6f)
-            }
-            stroke { moveTo(3f, 21f); lineTo(3f, 15f); lineTo(9f, 15f) }
+            path(
+                fill = null,
+                stroke = SolidColor(Color.Black),
+                strokeLineWidth = 2.4f,
+                strokeLineCap = androidx.compose.ui.graphics.StrokeCap.Round,
+                strokeLineJoin = androidx.compose.ui.graphics.StrokeJoin.Round,
+                pathBuilder = {
+                    moveTo(3.5f, 12f); curveTo(3.5f, 7.3f, 7.3f, 3.5f, 12f, 3.5f); curveTo(14.4f, 3.5f, 16.6f, 4.4f, 18.2f, 5.9f)
+                    moveTo(20.5f, 3.5f); lineTo(20.5f, 8.5f); lineTo(15.5f, 8.5f)
+                    moveTo(20.5f, 12f); curveTo(20.5f, 16.7f, 16.7f, 20.5f, 12f, 20.5f); curveTo(9.6f, 20.5f, 7.4f, 19.6f, 5.8f, 18.1f)
+                    moveTo(3.5f, 20.5f); lineTo(3.5f, 15.5f); lineTo(8.5f, 15.5f)
+                }
+            )
         }
     }
 
@@ -186,6 +191,20 @@ object PulseIcons {
             path(fill = SolidColor(Color.Black)) {
                 moveTo(12f, 2f); lineTo(13.8f, 7.2f); lineTo(19f, 9f); lineTo(13.8f, 10.8f)
                 lineTo(12f, 16f); lineTo(10.2f, 10.8f); lineTo(5f, 9f); lineTo(10.2f, 7.2f); close()
+            }
+        }
+    }
+
+    val Flash: ImageVector by lazy {
+        icon("Flash") {
+            path(fill = SolidColor(Color.Black)) {
+                moveTo(13f, 2f)
+                lineTo(4f, 13f)
+                lineTo(11.5f, 13f)
+                lineTo(10f, 22f)
+                lineTo(20f, 9f)
+                lineTo(12.5f, 9f)
+                close()
             }
         }
     }
