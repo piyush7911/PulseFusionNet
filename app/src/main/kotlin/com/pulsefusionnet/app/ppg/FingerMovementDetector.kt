@@ -57,11 +57,11 @@ class FingerDetector(
 class MovementDetector(
     private val historyFrames: Int = 90,
     private val madMultiplier: Double = 5.0,
-    private val minThreshold: Double = 22.0,
-    val abortFrames: Int = 60
+    private val minThreshold: Double = 35.0,
+    val abortFrames: Int = 90
 ) {
-    private val diffBuffer = ArrayDeque<Double>()
     private val spatialDiffBuffer = ArrayDeque<Double>()
+    private var prevRed: Double? = null
     private var prevGreen: Double? = null
     private var prevSpatialStd: Double? = null
 
@@ -71,46 +71,46 @@ class MovementDetector(
         private set
 
     fun update(stats: FrameStats): Boolean {
+        val avgR = stats.avgR
         val avgG = stats.avgG
         val spatialStd = stats.spatialStdR
 
+        val prevR = prevRed
         val prevG = prevGreen
         val prevS = prevSpatialStd
+        prevRed = avgR
         prevGreen = avgG
         prevSpatialStd = spatialStd
 
-        if (prevG == null || prevS == null) return false
+        if (prevR == null || prevG == null || prevS == null) return false
 
+        val diffR = kotlin.math.abs(avgR - prevR)
         val diffG = kotlin.math.abs(avgG - prevG)
         val diffS = kotlin.math.abs(spatialStd - prevS)
 
-        diffBuffer.addLast(diffG)
         spatialDiffBuffer.addLast(diffS)
-
-        if (diffBuffer.size > historyFrames) diffBuffer.removeFirst()
         if (spatialDiffBuffer.size > historyFrames) spatialDiffBuffer.removeFirst()
-
-        val sortedG = diffBuffer.sorted()
-        val madG = sortedG[sortedG.size / 2]
-        val thresholdG = maxOf(madG * madMultiplier, minThreshold)
 
         val sortedS = spatialDiffBuffer.sorted()
         val madS = sortedS[sortedS.size / 2]
-        val thresholdS = maxOf(madS * madMultiplier, 22.0)
+        val thresholdS = maxOf(madS * madMultiplier, 35.0)
 
-        val isGreenMovement = diffG > thresholdG && diffBuffer.size >= historyFrames / 2
+        // Real physical movement: spatial contact surface shift (diffS > thresholdS)
+        // OR massive multi-channel co-variance jump (both R & G jump > 45.0) —
+        // NOT single-channel green pulse wave slope!
         val isSpatialShift = diffS > thresholdS && spatialDiffBuffer.size >= historyFrames / 2
+        val isGrossMotionJump = diffR > 45.0 && diffG > 45.0
 
-        val isMovement = isGreenMovement || isSpatialShift
+        val isMovement = isSpatialShift || isGrossMotionJump
 
-        // Continuous quality score computation (100 = steady, 0 = motion spike)
-        val normG = (diffG / (thresholdG + 1e-6)).coerceIn(0.0, 3.0)
+        // Continuous motion quality score computation (100 = steady, 0 = motion spike)
         val normS = (diffS / (thresholdS + 1e-6)).coerceIn(0.0, 2.0)
-        val penalty = ((normG * 30.0) + (normS * 20.0)).toInt()
+        val normJ = (maxOf(diffR, diffG) / 45.0).coerceIn(0.0, 2.0)
+        val penalty = ((normS * 30.0) + (normJ * 30.0)).toInt()
         motionQualityScore = (100 - penalty).coerceIn(0, 100)
 
-        // Rapid decay when still (-5 per frame) so transient micro-ticks never accumulate across 60 seconds
-        consecutiveMovementFrames = if (isMovement) consecutiveMovementFrames + 1 else maxOf(0, consecutiveMovementFrames - 5)
+        // Rapid decay when still (-8 per frame) so transient micro-ticks never accumulate across 60 seconds
+        consecutiveMovementFrames = if (isMovement) consecutiveMovementFrames + 1 else maxOf(0, consecutiveMovementFrames - 8)
         return isMovement
     }
 
@@ -119,8 +119,8 @@ class MovementDetector(
     }
 
     fun reset() {
-        diffBuffer.clear()
         spatialDiffBuffer.clear()
+        prevRed = null
         prevGreen = null
         prevSpatialStd = null
         consecutiveMovementFrames = 0
