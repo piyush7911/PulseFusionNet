@@ -22,8 +22,21 @@ android {
         }
     }
 
+    signingConfigs {
+        create("ciSigning") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("ciSigning")
+        }
         release {
+            signingConfig = signingConfigs.getByName("ciSigning")
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
