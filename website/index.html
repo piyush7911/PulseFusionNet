@@ -764,14 +764,24 @@
     }
 
     @media (max-width: 900px) {
-      .vh-section,
-      #hero,
-      #how,
-      #trust {
+      .vh-section {
         min-height: auto !important;
         height: auto !important;
-        padding-top: 24px !important;
-        padding-bottom: 24px !important;
+      }
+
+      #hero {
+        padding-top: clamp(85px, 12vh, 105px) !important;
+        padding-bottom: 40px !important;
+      }
+
+      #how {
+        padding-top: clamp(70px, 9vh, 95px) !important;
+        padding-bottom: clamp(60px, 8vh, 85px) !important;
+      }
+
+      #trust {
+        padding-top: clamp(60px, 8vh, 85px) !important;
+        padding-bottom: clamp(40px, 6vh, 60px) !important;
       }
 
       .hero-inner,
