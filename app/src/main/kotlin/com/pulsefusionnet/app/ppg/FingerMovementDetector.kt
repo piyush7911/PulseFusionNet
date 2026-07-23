@@ -57,8 +57,8 @@ class FingerDetector(
 class MovementDetector(
     private val historyFrames: Int = 90,
     private val madMultiplier: Double = 5.0,
-    private val minThreshold: Double = 10.0,
-    val abortFrames: Int = 20
+    private val minThreshold: Double = 18.0,
+    val abortFrames: Int = 45
 ) {
     private val diffBuffer = ArrayDeque<Double>()
     private val spatialDiffBuffer = ArrayDeque<Double>()
@@ -94,18 +94,23 @@ class MovementDetector(
         val madG = sortedG[sortedG.size / 2]
         val thresholdG = maxOf(madG * madMultiplier, minThreshold)
 
+        val sortedS = spatialDiffBuffer.sorted()
+        val madS = sortedS[sortedS.size / 2]
+        val thresholdS = maxOf(madS * madMultiplier, 14.0)
+
         val isGreenMovement = diffG > thresholdG && diffBuffer.size >= historyFrames / 2
-        val isSpatialShift = diffS > 8.0 // sudden spatial shift = finger sliding / pressure change
+        val isSpatialShift = diffS > thresholdS && spatialDiffBuffer.size >= historyFrames / 2
 
         val isMovement = isGreenMovement || isSpatialShift
 
         // Continuous quality score computation (100 = steady, 0 = motion spike)
         val normG = (diffG / (thresholdG + 1e-6)).coerceIn(0.0, 3.0)
-        val normS = (diffS / 12.0).coerceIn(0.0, 2.0)
+        val normS = (diffS / (thresholdS + 1e-6)).coerceIn(0.0, 2.0)
         val penalty = ((normG * 30.0) + (normS * 20.0)).toInt()
         motionQualityScore = (100 - penalty).coerceIn(0, 100)
 
-        consecutiveMovementFrames = if (isMovement) consecutiveMovementFrames + 1 else maxOf(0, consecutiveMovementFrames - 2)
+        // Rapid decay when still (-5 per frame) so transient micro-ticks never accumulate across 60 seconds
+        consecutiveMovementFrames = if (isMovement) consecutiveMovementFrames + 1 else maxOf(0, consecutiveMovementFrames - 5)
         return isMovement
     }
 

@@ -36,8 +36,15 @@ fun MeasuringScreen(
     movementWarning: Boolean,
     isPaused: Boolean,
     waveformSamples: List<Float>,
+    isFlashEnabled: Boolean = false,
+    onToggleFlash: () -> Unit = {},
     cameraController: CameraController? = null
 ) {
+    // Keep camera torch in sync with isFlashEnabled state
+    androidx.compose.runtime.LaunchedEffect(isFlashEnabled, cameraController) {
+        cameraController?.setTorchEnabled(isFlashEnabled)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -51,9 +58,34 @@ fun MeasuringScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text("Measuring", style = MaterialTheme.typography.titleMedium, color = PulseColors.White)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                PulsingDot(PulseColors.Green, size = 7)
-                Text("LIVE", style = MaterialTheme.typography.labelSmall, color = PulseColors.Green)
+            
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                // Flash Toggle Button
+                Row(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(if (isFlashEnabled) PulseColors.Orange.copy(alpha = 0.25f) else PulseColors.Card)
+                        .androidx.compose.foundation.clickable { onToggleFlash() }
+                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        PulseIcons.Sparkle, contentDescription = "Flash Toggle",
+                        tint = if (isFlashEnabled) PulseColors.Orange else PulseColors.Muted,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        if (isFlashEnabled) "Flash ON" else "Flash OFF",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                        color = if (isFlashEnabled) PulseColors.Orange else PulseColors.Muted
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    PulsingDot(PulseColors.Green, size = 7)
+                    Text("LIVE", style = MaterialTheme.typography.labelSmall, color = PulseColors.Green)
+                }
             }
         }
 

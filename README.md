@@ -94,7 +94,7 @@ android_app/
 
 Same protocol as the web app: cover the rear camera lens fully with a
 fingertip, keep it still for the ~2s stabilization + 60s measurement window.
-No flash is used, matching the browser build's ambient-light approach.
+flash is used when ambient-light is very dark.
 
 ## Validating the on-device Python port
 

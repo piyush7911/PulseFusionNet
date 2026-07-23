@@ -1,6 +1,6 @@
 {
   "versionCode": 2,
   "versionName": "v1.1.0",
-  "changelog": "v1.1.0 — Added Scanning Guidance Card (54-135 BPM Range & Post-Exercise 3-min Tip), In-App Auto Update System, and Multi-Domain Engine Upgrades.",
+  "changelog": "v1.1.0 — Fixed false movement aborts at session end, upgraded Model Confidence with cross-estimator agreement boost (matching 97% SQI), and added Scanning Guidance & Flash Toggle.",
   "downloadUrl": "https://github.com/piyush7911/PulseFusionNet/releases/latest/download/app-release.apk"
 }

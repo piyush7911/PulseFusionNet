@@ -48,7 +48,7 @@ private data class Step(val icon: androidx.compose.ui.graphics.vector.ImageVecto
 
 private val STEPS = listOf(
     Step(PulseIcons.Camera, "Open the scanner", "Tap Start Measurement to activate the rear camera."),
-    Step(PulseIcons.Fingerprint, "Cover the lens", "Rest your fingertip flat over the camera, no flash needed."),
+    Step(PulseIcons.Fingerprint, "Cover the lens", "Rest your fingertip flat over the camera, flash needed only if ambient light is less."),
     Step(PulseIcons.Clock, "Hold steady", "Keep still for 60 seconds while the signal stabilizes."),
     Step(PulseIcons.CheckCircle, "Read your result", "The on-device model returns your BPM and confidence.")
 )

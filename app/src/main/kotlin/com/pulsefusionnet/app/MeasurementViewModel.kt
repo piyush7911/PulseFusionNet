@@ -47,6 +47,14 @@ class MeasurementViewModel : ViewModel() {
     var journey by mutableStateOf(Journey.LOADING)
         private set
 
+    // Flash / Torch state — OFF by default (0.0% torch forced unless user toggles)
+    var isFlashEnabled by mutableStateOf(false)
+        private set
+
+    fun toggleFlash() {
+        isFlashEnabled = !isFlashEnabled
+    }
+
     // Detecting screen state
     var stabilizationPct by mutableStateOf(0)
         private set
@@ -182,7 +190,7 @@ class MeasurementViewModel : ViewModel() {
 
         val isMovement = movementDetector.update(stats)
         movementWarning = isMovement
-        if (movementDetector.consecutiveMovementFrames >= movementDetector.abortFrames) {
+        if (movementDetector.consecutiveMovementFrames >= movementDetector.abortFrames && secondsRemaining > 3) {
             abort("Excessive movement detected. Keep your finger and phone completely still.")
             return
         }
@@ -383,6 +391,7 @@ class MeasurementViewModel : ViewModel() {
         fingerPresent = true
         movementWarning = false
         isPaused = false
+        isFlashEnabled = false
         emaBpm = 0.0; emaCount = 0
         waveformSamples = emptyList()
     }

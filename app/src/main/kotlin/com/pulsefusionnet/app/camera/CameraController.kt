@@ -24,6 +24,8 @@ class CameraController(private val onFrame: (FrameStats) -> Unit) {
     private var cameraProvider: ProcessCameraProvider? = null
     private var currentLifecycleOwner: LifecycleOwner? = null
     private var previewViewRef: PreviewView? = null
+    private var camera: androidx.camera.core.Camera? = null
+    private var isTorchEnabled = false
     private val analysisExecutor = Executors.newSingleThreadExecutor()
 
     // Sample every Nth pixel to bound per-frame CPU cost — a coarse grid is all the
@@ -41,11 +43,20 @@ class CameraController(private val onFrame: (FrameStats) -> Unit) {
         bindCamera()
     }
 
+    fun setTorchEnabled(enabled: Boolean) {
+        isTorchEnabled = enabled
+        if (camera?.cameraInfo?.hasFlashUnit() == true) {
+            camera?.cameraControl?.enableTorch(enabled)
+        }
+    }
+
     fun stop() {
+        setTorchEnabled(false)
         cameraProvider?.unbindAll()
         cameraProvider = null
         currentLifecycleOwner = null
         previewViewRef = null
+        camera = null
     }
 
     private fun bindCamera() {
@@ -63,12 +74,16 @@ class CameraController(private val onFrame: (FrameStats) -> Unit) {
         val selector = CameraSelector.DEFAULT_BACK_CAMERA
         val pView = previewViewRef
 
-        if (pView != null) {
+        camera = if (pView != null) {
             val preview = androidx.camera.core.Preview.Builder().build()
             preview.setSurfaceProvider(pView.surfaceProvider)
             provider.bindToLifecycle(owner, selector, preview, analysis)
         } else {
             provider.bindToLifecycle(owner, selector, analysis)
+        }
+
+        if (camera?.cameraInfo?.hasFlashUnit() == true) {
+            camera?.cameraControl?.enableTorch(isTorchEnabled)
         }
     }
 

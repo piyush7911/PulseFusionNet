@@ -127,6 +127,8 @@ class MainActivity : ComponentActivity() {
                                 fingerOnLens = viewModel.fingerOnLens,
                                 stabilizationPct = viewModel.stabilizationPct,
                                 waveformSamples = viewModel.waveformSamples,
+                                isFlashEnabled = viewModel.isFlashEnabled,
+                                onToggleFlash = { viewModel.toggleFlash() },
                                 cameraController = cameraController,
                                 onCancel = { viewModel.cancelAndReturnHome() }
                             )
@@ -139,6 +141,8 @@ class MainActivity : ComponentActivity() {
                                 movementWarning = viewModel.movementWarning,
                                 isPaused = viewModel.isPaused,
                                 waveformSamples = viewModel.waveformSamples,
+                                isFlashEnabled = viewModel.isFlashEnabled,
+                                onToggleFlash = { viewModel.toggleFlash() },
                                 cameraController = cameraController
                             )
 

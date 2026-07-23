@@ -37,19 +37,54 @@ fun DetectingScreen(
     fingerOnLens: Boolean,
     stabilizationPct: Int,
     waveformSamples: List<Float>,
+    isFlashEnabled: Boolean = false,
+    onToggleFlash: () -> Unit = {},
     cameraController: CameraController? = null,
     onCancel: () -> Unit
 ) {
+    // Keep camera torch in sync with isFlashEnabled state
+    androidx.compose.runtime.LaunchedEffect(isFlashEnabled, cameraController) {
+        cameraController?.setTorchEnabled(isFlashEnabled)
+    }
+
     Column(modifier = Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            IconButton(onClick = onCancel) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                IconButton(onClick = onCancel) {
+                    Icon(
+                        PulseIcons.ChevronRight, contentDescription = "Cancel",
+                        tint = PulseColors.White,
+                        modifier = Modifier.graphicsLayer { rotationZ = 180f }.size(20.dp)
+                    )
+                }
+                Text("Finger Detection", style = MaterialTheme.typography.titleMedium, color = PulseColors.White)
+            }
+
+            // Flash Toggle Pill Button (OFF by default)
+            Row(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(if (isFlashEnabled) PulseColors.Orange.copy(alpha = 0.25f) else PulseColors.Card)
+                    .androidx.compose.foundation.clickable { onToggleFlash() }
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
                 Icon(
-                    PulseIcons.ChevronRight, contentDescription = "Cancel",
-                    tint = PulseColors.White,
-                    modifier = Modifier.graphicsLayer { rotationZ = 180f }.size(20.dp)
+                    PulseIcons.Sparkle, contentDescription = "Flash Toggle",
+                    tint = if (isFlashEnabled) PulseColors.Orange else PulseColors.Muted,
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    if (isFlashEnabled) "Flash ON" else "Flash OFF",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (isFlashEnabled) PulseColors.Orange else PulseColors.Muted
                 )
             }
-            Text("Finger Detection", style = MaterialTheme.typography.titleMedium, color = PulseColors.White)
         }
 
         Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
@@ -93,6 +128,7 @@ fun DetectingScreen(
             }
         }
 
+        // Ambient Light Advisory Note
         Row(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -101,9 +137,9 @@ fun DetectingScreen(
                 .background(PulseColors.Blue.copy(alpha = 0.06f), androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
                 .padding(12.dp)
         ) {
-            Icon(PulseIcons.Bulb, contentDescription = null, tint = PulseColors.Blue, modifier = Modifier.size(16.dp))
+            Icon(PulseIcons.Bulb, contentDescription = null, tint = PulseColors.Cyan, modifier = Modifier.size(18.dp))
             Text(
-                "Apply gentle, flat pressure — keep your fingertip still over the lens.",
+                "Note: When ambient light is low or dark, turn ON the flash for better signal.",
                 style = MaterialTheme.typography.bodyMedium, color = PulseColors.Muted2
             )
         }

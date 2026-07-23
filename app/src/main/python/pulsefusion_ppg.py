@@ -491,7 +491,7 @@ def extract_acf_bpm(signal, fps: float, min_bpm: float = 54.0, max_bpm: float = 
 
 
 def _compute_spectral_snr(sig, fps: float, bpm: float, min_bpm: float = 54.0, max_bpm: float = 170.0) -> float:
-    """Computes spectral peak power ratio (SNR SQI) around candidate BPM."""
+    """Computes spectral peak power ratio (SNR SQI) around candidate BPM (fundamental + 2nd harmonic)."""
     if not np.isfinite(bpm) or len(sig) < int(fps * 3.0) or not np.all(np.isfinite(sig)):
         return 0.5
     s_detrend = sig - np.mean(sig)
@@ -499,11 +499,14 @@ def _compute_spectral_snr(sig, fps: float, bpm: float, min_bpm: float = 54.0, ma
     fft_vals = np.abs(np.fft.rfft(s_detrend, n=n_fft))
     freqs = np.fft.rfftfreq(n_fft, d=1.0 / fps)
     cand_hz = bpm / 60.0
+    h2_hz = 2.0 * cand_hz
     peak_mask = (freqs >= cand_hz - 0.15) & (freqs <= cand_hz + 0.15)
+    h2_mask = (freqs >= h2_hz - 0.20) & (freqs <= h2_hz + 0.20)
     band_mask = (freqs >= min_bpm / 60.0) & (freqs <= max_bpm / 60.0)
-    peak_pwr = np.sum(fft_vals[peak_mask] ** 2)
+    
+    peak_pwr = np.sum(fft_vals[peak_mask] ** 2) + 0.6 * np.sum(fft_vals[h2_mask] ** 2)
     total_pwr = np.sum(fft_vals[band_mask] ** 2) + 1e-9
-    return float(np.clip(peak_pwr / total_pwr, 0.0, 1.0))
+    return float(np.clip((peak_pwr / total_pwr) * 1.8, 0.0, 1.0))
 
 
 def _compute_acf_prominence(sig, fps: float, bpm: float) -> float:
@@ -575,15 +578,29 @@ def extract_ensemble_bpm(green, red, fps: float, min_bpm: float = 54.0, max_bpm:
         b_acf = float("nan")
         consensus = b_fft
 
-    # Option 1: Learned Feature Quality Weighting Q_i
+    # Option 1: Learned Feature Quality Weighting Q_i + Cross-Domain Agreement Boost
     snr_sqi = _compute_spectral_snr(green, fps, consensus, min_bpm, max_bpm)
     acf_prom = _compute_acf_prominence(green, fps, consensus)
     skew = _compute_abs_skewness(green)
 
-    q_weight = (snr_sqi * 60.0) + (acf_prom * 40.0)
+    q_base = (snr_sqi * 50.0) + (acf_prom * 50.0)
+
+    # Cross-Estimator Agreement Boost:
+    # If FFT & ACF agree within 3 BPM, scale confidence up
+    # If FFT, ACF & PCA all agree within 3 BPM, scale up further
+    agreement_boost = 1.0
+    if np.isfinite(b_acf) and abs(b_fft - b_acf) <= 3.0:
+        agreement_boost = 1.25
+        if np.isfinite(bpm_pca) and abs(b_fft - bpm_pca) <= 3.0:
+            agreement_boost = 1.35
+    elif np.isfinite(b_acf) and abs(b_fft - b_acf) <= 5.0:
+        agreement_boost = 1.15
+
+    q_weight = q_base * agreement_boost
     if skew > 2.0:
         q_weight *= 0.5
-    confidence = float(np.clip(q_weight, 20.0, 99.0))
+
+    confidence = float(np.clip(q_weight, 25.0, 99.0))
 
     return {
         "consensus_bpm": consensus,
