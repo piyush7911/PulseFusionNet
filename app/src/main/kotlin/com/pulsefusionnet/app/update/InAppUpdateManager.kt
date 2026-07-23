@@ -38,8 +38,8 @@ object InAppUpdateManager {
     // Default update endpoint (GitHub Raw android_app/update.json + GitHub Releases API fallback)
     private const val DEFAULT_UPDATE_URL = "https://raw.githubusercontent.com/piyush7911/PulseFusionNet/main/android_app/update.json"
     private const val GITHUB_RELEASES_API_URL = "https://api.github.com/repos/piyush7911/PulseFusionNet/releases/latest"
-    private const val CURRENT_VERSION_CODE = 1
-    const val CURRENT_VERSION_NAME = "v1.0.0"
+    private const val CURRENT_VERSION_CODE = 3
+    const val CURRENT_VERSION_NAME = "v1.2.0"
 
     /**
      * Checks remote GitHub repository for available releases or update.json.
@@ -62,11 +62,11 @@ object InAppUpdateManager {
                 val json = JSONObject(jsonString)
 
                 val latestVersionCode = json.optInt("versionCode", CURRENT_VERSION_CODE)
-                val latestVersionName = json.optString("versionName", "v1.0.0")
+                val latestVersionName = json.optString("versionName", CURRENT_VERSION_NAME)
                 val changelog = json.optString("changelog", "Engine improvements & accuracy updates.")
                 val downloadUrl = json.optString(
                     "downloadUrl",
-                    "https://github.com/piyush/PulseFusionNet/releases/latest/download/app-release.apk"
+                    "https://github.com/piyush7911/PulseFusionNet/releases/latest/download/app-release.apk"
                 )
 
                 val updateInfo = UpdateInfo(latestVersionName, latestVersionCode, changelog, downloadUrl)
@@ -99,7 +99,7 @@ object InAppUpdateManager {
                 val jsonString = connection.inputStream.bufferedReader().use { it.readText() }
                 val json = JSONObject(jsonString)
 
-                val tagName = json.optString("tag_name", "v1.0.0")
+                val tagName = json.optString("tag_name", CURRENT_VERSION_NAME)
                 val changelog = json.optString("body", "GitHub Release update.")
                 
                 // Parse assets for .apk file
