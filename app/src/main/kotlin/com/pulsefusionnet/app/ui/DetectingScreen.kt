@@ -30,6 +30,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.runtime.LaunchedEffect
+
 import com.pulsefusionnet.app.camera.CameraController
 
 @Composable
@@ -43,7 +49,7 @@ fun DetectingScreen(
     onCancel: () -> Unit
 ) {
     // Keep camera torch in sync with isFlashEnabled state
-    androidx.compose.runtime.LaunchedEffect(isFlashEnabled, cameraController) {
+    LaunchedEffect(isFlashEnabled, cameraController) {
         cameraController?.setTorchEnabled(isFlashEnabled)
     }
 
@@ -69,7 +75,7 @@ fun DetectingScreen(
                 modifier = Modifier
                     .clip(CircleShape)
                     .background(if (isFlashEnabled) PulseColors.Orange.copy(alpha = 0.25f) else PulseColors.Card)
-                    .androidx.compose.foundation.clickable { onToggleFlash() }
+                    .clickable { onToggleFlash() }
                     .padding(horizontal = 12.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -107,10 +113,10 @@ fun DetectingScreen(
                     }
                 }
                 if (fingerOnLens) {
-                    androidx.compose.foundation.layout.Spacer(Modifier.size(4.dp))
-                    androidx.compose.material3.LinearProgressIndicator(
+                    Spacer(Modifier.size(4.dp))
+                    LinearProgressIndicator(
                         progress = { stabilizationPct / 100f },
-                        modifier = Modifier.fillMaxWidth().clip(androidx.compose.foundation.shape.RoundedCornerShape(3.dp)),
+                        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(3.dp)),
                         color = PulseColors.Cyan,
                         trackColor = Color.White.copy(alpha = 0.06f)
                     )
@@ -122,7 +128,7 @@ fun DetectingScreen(
             GlassCard {
                 Column {
                     Text("LIVE SIGNAL", style = MaterialTheme.typography.labelSmall, color = PulseColors.Muted)
-                    androidx.compose.foundation.layout.Spacer(Modifier.size(6.dp))
+                    Spacer(Modifier.size(6.dp))
                     Waveform(waveformSamples, PulseColors.Red)
                 }
             }
@@ -134,7 +140,7 @@ fun DetectingScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .background(PulseColors.Blue.copy(alpha = 0.06f), androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                .background(PulseColors.Blue.copy(alpha = 0.06f), RoundedCornerShape(12.dp))
                 .padding(12.dp)
         ) {
             Icon(PulseIcons.Bulb, contentDescription = null, tint = PulseColors.Cyan, modifier = Modifier.size(18.dp))

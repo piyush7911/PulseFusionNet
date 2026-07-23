@@ -24,6 +24,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.graphics.Brush
+
 import com.pulsefusionnet.app.camera.CameraController
 import androidx.compose.foundation.shape.CircleShape
 
@@ -41,14 +47,14 @@ fun MeasuringScreen(
     cameraController: CameraController? = null
 ) {
     // Keep camera torch in sync with isFlashEnabled state
-    androidx.compose.runtime.LaunchedEffect(isFlashEnabled, cameraController) {
+    LaunchedEffect(isFlashEnabled, cameraController) {
         cameraController?.setTorchEnabled(isFlashEnabled)
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(androidx.compose.foundation.rememberScrollState())
+            .verticalScroll(rememberScrollState())
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
@@ -65,7 +71,7 @@ fun MeasuringScreen(
                     modifier = Modifier
                         .clip(CircleShape)
                         .background(if (isFlashEnabled) PulseColors.Orange.copy(alpha = 0.25f) else PulseColors.Card)
-                        .androidx.compose.foundation.clickable { onToggleFlash() }
+                        .clickable { onToggleFlash() }
                         .padding(horizontal = 10.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -132,7 +138,7 @@ fun MeasuringScreen(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(20.dp))
                 .background(
-                    androidx.compose.ui.graphics.Brush.linearGradient(
+                    Brush.linearGradient(
                         listOf(PulseColors.Blue.copy(alpha = 0.12f), PulseColors.Cyan.copy(alpha = 0.05f))
                     )
                 )
@@ -157,7 +163,7 @@ fun MeasuringScreen(
             GlassCard {
                 Column {
                     Text("PPG SIGNAL", style = MaterialTheme.typography.labelSmall, color = PulseColors.Muted)
-                    androidx.compose.foundation.layout.Spacer(Modifier.size(6.dp))
+                    Spacer(Modifier.size(6.dp))
                     Waveform(waveformSamples, PulseColors.Red)
                 }
             }
