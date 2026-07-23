@@ -57,8 +57,8 @@ class FingerDetector(
 class MovementDetector(
     private val historyFrames: Int = 90,
     private val madMultiplier: Double = 5.0,
-    private val minThreshold: Double = 18.0,
-    val abortFrames: Int = 45
+    private val minThreshold: Double = 22.0,
+    val abortFrames: Int = 60
 ) {
     private val diffBuffer = ArrayDeque<Double>()
     private val spatialDiffBuffer = ArrayDeque<Double>()
@@ -96,7 +96,7 @@ class MovementDetector(
 
         val sortedS = spatialDiffBuffer.sorted()
         val madS = sortedS[sortedS.size / 2]
-        val thresholdS = maxOf(madS * madMultiplier, 14.0)
+        val thresholdS = maxOf(madS * madMultiplier, 22.0)
 
         val isGreenMovement = diffG > thresholdG && diffBuffer.size >= historyFrames / 2
         val isSpatialShift = diffS > thresholdS && spatialDiffBuffer.size >= historyFrames / 2

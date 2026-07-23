@@ -12,8 +12,8 @@ android {
         applicationId = "com.pulsefusionnet.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.2.0"
+        versionCode = 4
+        versionName = "1.3.0"
 
         // 64-bit only: keeps the embedded Python interpreter to two ABI slices instead of
         // four. Fine at minSdk 26 — 32-bit-only devices are effectively gone.
