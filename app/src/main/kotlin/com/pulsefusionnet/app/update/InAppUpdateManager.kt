@@ -38,8 +38,8 @@ object InAppUpdateManager {
     // Default update endpoint (GitHub Raw android_app/update.json + GitHub Releases API fallback)
     private const val DEFAULT_UPDATE_URL = "https://raw.githubusercontent.com/piyush7911/PulseFusionNet/main/android_app/update.json"
     private const val GITHUB_RELEASES_API_URL = "https://api.github.com/repos/piyush7911/PulseFusionNet/releases/latest"
-    private const val CURRENT_VERSION_CODE = 4
-    const val CURRENT_VERSION_NAME = "v1.3.0"
+    private const val CURRENT_VERSION_CODE = 5
+    const val CURRENT_VERSION_NAME = "v1.4.0"
 
     /**
      * Checks remote GitHub repository for available releases or update.json.

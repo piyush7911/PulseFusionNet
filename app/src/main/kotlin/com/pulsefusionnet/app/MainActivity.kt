@@ -143,7 +143,8 @@ class MainActivity : ComponentActivity() {
                                 waveformSamples = viewModel.waveformSamples,
                                 isFlashEnabled = viewModel.isFlashEnabled,
                                 onToggleFlash = { viewModel.toggleFlash() },
-                                cameraController = cameraController
+                                cameraController = cameraController,
+                                onCancel = { viewModel.cancelAndReturnHome() }
                             )
 
                             Journey.FAILED -> FailedScreen(

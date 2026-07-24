@@ -332,7 +332,7 @@ class MeasurementViewModel : ViewModel() {
         val finalConf = median(stableConfs)
         val finalSqi = median(stableSqi)
 
-        if (passCount < 2 || finalSqi < 35.0) {
+        if (finalSqi < 35.0) {
             abort("Signal corrupted by finger motion or low optical contrast. Please hold your finger still and re-measure.")
             return
         }

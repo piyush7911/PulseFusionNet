@@ -1,6 +1,6 @@
 {
-  "versionCode": 4,
-  "versionName": "v1.3.0",
-  "changelog": "v1.3.0 — Top Bar Update Icon button, light contact motion tolerance tuning, persistent CI build signing, and UI optimizations.",
+  "versionCode": 5,
+  "versionName": "v1.4.0",
+  "changelog": "v1.4.0 — Resolved 60-second measurement abort failures by tuning the signal quality logic. Improved Measuring Screen back navigation handling.",
   "downloadUrl": "https://github.com/piyush7911/PulseFusionNet/releases/latest/download/app-release.apk"
 }

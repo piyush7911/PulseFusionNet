@@ -33,6 +33,8 @@ import androidx.compose.ui.graphics.Brush
 import com.pulsefusionnet.app.camera.CameraController
 import androidx.compose.foundation.shape.CircleShape
 
+import androidx.activity.compose.BackHandler
+
 @Composable
 fun MeasuringScreen(
     secondsRemaining: Int,
@@ -44,8 +46,11 @@ fun MeasuringScreen(
     waveformSamples: List<Float>,
     isFlashEnabled: Boolean = false,
     onToggleFlash: () -> Unit = {},
-    cameraController: CameraController? = null
+    cameraController: CameraController? = null,
+    onCancel: () -> Unit
 ) {
+    BackHandler { onCancel() }
+
     // Keep camera torch in sync with isFlashEnabled state
     LaunchedEffect(isFlashEnabled, cameraController) {
         cameraController?.setTorchEnabled(isFlashEnabled)
