@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PulseFusionNet — Your heartbeat, read by light</title>
   <meta name="description"
-    content="PulseFusionNet reads your pulse from a fingertip and a camera, entirely on-device. See how it works and how it tries to be reliable." />
+    content="PulseFusionNet reads your pulse from a fingertip and a camera, entirely on-device." />
 
   <style>
     :root {
@@ -132,10 +132,12 @@
       padding-top: clamp(40px, 6vh, 70px);
       padding-bottom: clamp(15px, 2vh, 30px);
     }
+
     #how {
       padding-top: clamp(20px, 3vh, 40px);
       padding-bottom: clamp(90px, 12vh, 140px);
     }
+
     #trust {
       padding-top: clamp(80px, 10vh, 120px);
       padding-bottom: clamp(60px, 8vh, 100px);
@@ -1118,7 +1120,7 @@
             <div class="step-card glass">
               <span class="tile-index num">03</span>
               <div class="tile-title">NLMS Motion Cancellation</div>
-              <div class="tile-body">Option 4 3-axis accelerometer adaptive filtering cancels hand motion and contact
+              <div class="tile-body">3-axis accelerometer adaptive filtering cancels hand motion and contact
                 pressure shifts.</div>
             </div>
             <div class="step-card glass">
@@ -1130,7 +1132,7 @@
             <div class="step-card glass">
               <span class="tile-index num">05</span>
               <div class="tile-title">Quality Consensus</div>
-              <div class="tile-body">Option 1 learned feature weighting ($Q_i$) &amp; cross-estimator agreement boost
+              <div class="tile-body">Learned feature weighting ($Q_i$) &amp; cross-estimator agreement boost
                 ensure clinical-grade precision.</div>
             </div>
           </div>
@@ -1220,8 +1222,8 @@
         <div class="glass m-card featured-acc reveal">
           <div class="metric-num">0.76 BPM <span>MAE (Smartphone Video)</span></div>
           <div class="metric-desc">High-precision smartphone benchmark evaluated on 21 real finger-camera subjects
-            (Welltory PPG dataset; Pearson r = 0.9895, 81.0% sub-BPM precision against Polar H10 chest-strap ECG
-            reference).</div>
+            (Welltory PPG dataset; Pearson r = 0.9895, 81.0% sub-BPM precision against the gold-standard <strong>Polar
+              H10 chest-strap ECG</strong> reference).</div>
         </div>
         <div class="glass m-card featured-acc reveal" style="border-color: rgba(6, 182, 212, 0.35);">
           <div class="metric-num">0.61 BPM <span>MAE (PhysioNet BIDMC)</span></div>
@@ -1257,6 +1259,11 @@
           </div>
           PulseFusionNet
         </div>
+        <p style="font-size: 0.82rem; color: var(--muted); margin-top: 4px; margin-bottom: 6px;">
+          For contact, DM me on <a href="https://www.linkedin.com/in/piyush7911/" target="_blank"
+            rel="noopener noreferrer"
+            style="color: var(--cyan); text-decoration: none; font-weight: 600; transition: color 0.2s ease;">LinkedIn</a>
+        </p>
         <p class="foot-warning">PulseFusionNet is a general wellness &amp; research reference tool — not a medical
           device. Not intended to diagnose, treat, or monitor any medical condition.</p>
       </footer>
