@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>PulseFusionNet — Heart Rate</title>
+<meta name="description" content="Camera-based PPG heart-rate monitor. Runs entirely on your phone — no server, no network calls." />
+<meta name="theme-color" content="#05070c" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="icon" href="icons/icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="PulseFusion" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<!-- Stroke-icon sprite — no emoji, mirrors the Android app's custom Icons.kt set -->
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-10-9.3C.4 8 1.6 4.5 5 3.4c2.3-.7 4.6.2 6 2.1 1.4-1.9 3.7-2.8 6-2.1 3.4 1.1 4.6 4.6 3 7.8-2.5 4.7-10 9.3-10 9.3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-camera" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 7l1.6-2.5h4.8L16 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-finger" viewBox="0 0 24 24"><path d="M12 3c-3.3 0-6 2.7-6 6v4c0 3.9 2.6 7.2 6 8 3.4-.8 6-4.1 6-8V9c0-3.3-2.7-6-6-6z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 12v1c0 2.2 1.3 4 3 4.6M15 12v1c0 .8-.1 1.6-.4 2.3M12 8v1M9 10.2v.3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+  <symbol id="i-flash" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 10v4M12 16.5v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 12.5l2.6 2.6L16 9.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M18 3v4h-4M6 21v-4h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="1" fill="currentColor"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M8 14a5 5 0 1 1 8 0c-.8.9-1.3 1.6-1.3 2.6h-5.4c0-1-.5-1.7-1.3-2.6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.3 7-11.5A7 7 0 1 0 5 9.5C5 14.7 12 21 12 21z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="9.5" r="2.4" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.7-7 9-4-1.3-7-4.5-7-9V6l7-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bars" viewBox="0 0 24 24"><path d="M5 20V11M11 20V6M17 20v-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+</svg>
+
+<div id="app">
+  <div class="brand-row">
+    <div class="brand"><span class="brand-icon"><svg class="icon" width="16" height="16"><use href="#i-heart"/></svg></span><span>PulseFusionNet</span></div>
+    <span class="pill pill-blue">ON-DEVICE AI</span>
+  </div>
+
+  <section id="screen-permission" class="screen">
+    <div class="center">
+      <div class="hero-icon"><svg class="icon" width="40" height="40"><use href="#i-camera"/></svg></div>
+      <h1>Camera Access Needed</h1>
+      <p class="sub">PulseFusionNet reads your pulse through the rear camera lens — everything is processed on this device, nothing is uploaded anywhere.</p>
+      <button id="btn-grant" class="btn">Grant Camera Access</button>
+      <p id="permission-error" class="sub hidden" style="color:var(--pulse)"></p>
+    </div>
+  </section>
+
+  <section id="screen-home" class="screen">
+    <div class="scroll">
+      <div class="hero-card">
+        <svg class="icon heartbeat" width="44" height="44"><use href="#i-heart"/></svg>
+        <h2>Ready when you are</h2>
+        <p class="sub">60-second on-device pulse scan</p>
+      </div>
+
+      <button id="btn-start" class="btn"><svg class="icon" width="18" height="18"><use href="#i-finger"/></svg>Start Measurement</button>
+
+      <div class="card collapsible" id="how-it-works-toggle">
+        <div class="card-row">
+          <div class="section-header"><svg class="icon" width="16" height="16"><use href="#i-bulb"/></svg><span>How it works</span></div>
+          <svg id="how-chevron" class="icon chevron" width="16" height="16"><use href="#i-chevron"/></svg>
+        </div>
+        <div id="how-it-works-body" class="collapsible-body hidden">
+          <div class="step-row"><div class="step-icon"><svg class="icon" width="14" height="14"><use href="#i-camera"/></svg></div><div><b>Open the scanner</b><p class="sub small">Tap Start Measurement to activate the rear camera.</p></div></div>
+          <div class="step-row"><div class="step-icon"><svg class="icon" width="14" height="14"><use href="#i-finger"/></svg></div><div><b>Cover the lens</b><p class="sub small">Rest your fingertip flat over the camera, flash needed only if ambient light is low.</p></div></div>
+          <div class="step-row"><div class="step-icon"><svg class="icon" width="14" height="14"><use href="#i-clock"/></svg></div><div><b>Hold steady</b><p class="sub small">Keep still for 60 seconds while the signal stabilizes.</p></div></div>
+          <div class="step-row"><div class="step-icon"><svg class="icon" width="14" height="14"><use href="#i-check"/></svg></div><div><b>Read your result</b><p class="sub small">The on-device model returns your BPM and confidence.</p></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-header"><svg class="icon" width="18" height="18"><use href="#i-pin"/></svg><span>Scanning Guidance</span></div>
+        <div class="step-row"><div class="step-icon cyan"><svg class="icon" width="12" height="12"><use href="#i-target"/></svg></div><div><b class="small">Reliable Range: 54 – 135 BPM</b><p class="sub small">Optimized for still resting measurement on smartphone camera optical sensors.</p></div></div>
+        <div class="step-row"><div class="step-icon cyan"><svg class="icon" width="12" height="12"><use href="#i-clock"/></svg></div><div><b class="small">Post-Exercise Tip (Wait 3 Mins)</b><p class="sub small">After heavy exercise, rest for 3 minutes before measuring for your pulse to stabilize.</p></div></div>
+        <div class="step-row"><div class="step-icon cyan"><svg class="icon" width="12" height="12"><use href="#i-warn"/></svg></div><div><b class="small">Elevated Heart Rate Tip</b><p class="sub small">If your heart felt fast during measurement, wait 3 minutes and re-measure while sitting comfortably.</p></div></div>
+      </div>
+
+      <div class="note"><svg class="icon" width="15" height="15"><use href="#i-shield"/></svg><span>General wellness reference only — not a medical device.</span></div>
+    </div>
+  </section>
+
+  <section id="screen-detecting" class="screen">
+    <div class="screen-header">
+      <div class="header-left"><button id="btn-cancel" class="icon-btn"><svg class="icon" width="20" height="20"><use href="#i-chevron" style="transform:rotate(180deg)"/></svg></button><span>Finger Detection</span></div>
+      <button id="btn-flash" class="pill pill-toggle hidden"><svg class="icon" width="16" height="16"><use href="#i-flash"/></svg><span>Flash OFF</span></button>
+    </div>
+
+    <div class="center" style="flex:0 0 auto;padding:20px 0">
+      <div id="detecting-ring" class="ring">
+        <video id="camera-preview" autoplay muted playsinline></video>
+        <div class="ring-overlay"></div>
+        <svg class="icon finger-pulse" id="finger-icon" width="38" height="38"><use href="#i-finger"/></svg>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="status-row">
+        <span id="detecting-dot" class="dot"></span>
+        <div><b id="detecting-title">Waiting for finger…</b><p id="detecting-status" class="sub small">Cover the camera lens completely with your fingertip</p></div>
+      </div>
+      <div class="progress-track"><div id="stabilization-bar" class="progress-fill"></div></div>
+    </div>
+
+    <div id="detecting-wave-card" class="card hidden">
+      <p class="label">LIVE SIGNAL</p>
+      <canvas id="wave-detecting-card" width="360" height="70"></canvas>
+    </div>
+
+    <div class="note">
+      <svg class="icon" width="18" height="18"><use href="#i-bulb"/></svg>
+      <span>Note: When ambient light is low or dark, turn ON the flash for better signal.</span>
+    </div>
+    <pre id="debug" class="hidden"></pre>
+  </section>
+
+  <section id="screen-measuring" class="screen">
+    <div class="screen-header">
+      <span>Measuring</span>
+      <div class="header-right">
+        <button id="btn-flash-m" class="pill pill-toggle hidden"><svg class="icon" width="14" height="14"><use href="#i-flash"/></svg><span>Flash OFF</span></button>
+        <span class="pill-live"><span class="dot live"></span>LIVE</span>
+      </div>
+    </div>
+
+    <div id="finger-status-pill" class="status-pill"><span class="dot"></span><span id="finger-status-text">Finger detected — measuring</span></div>
+
+    <div class="center" style="flex:0 0 auto;padding:16px 0">
+      <div class="ring ring-lg">
+        <video id="camera-preview-m" autoplay muted playsinline></video>
+        <div class="ring-overlay strong"></div>
+        <div class="ring-center">
+          <span id="seconds-remaining" class="seconds">60</span>
+          <span id="seconds-label" class="seconds-label">sec left</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="live-reading-card">
+      <p class="label">LIVE READING</p>
+      <div class="big-bpm"><span id="live-bpm">--</span><span class="unit">BPM</span></div>
+      <p class="sub small">Updates every 3 seconds</p>
+    </div>
+
+    <div id="measuring-wave-card" class="card hidden">
+      <p class="label">PPG SIGNAL</p>
+      <canvas id="wave-measuring" width="360" height="70"></canvas>
+    </div>
+
+    <div class="quality-row">
+      <div class="quality-label-row"><span class="sub small">Signal Quality</span><span id="signal-quality-text" class="sub small cyan">0%</span></div>
+      <div class="progress-track"><div id="signal-quality-bar" class="progress-fill quality"></div></div>
+    </div>
+
+    <button id="btn-cancel-measuring" class="btn secondary" style="margin-top:16px">Cancel</button>
+  </section>
+
+  <section id="screen-result" class="screen">
+    <div class="scroll">
+      <div class="row-between">
+        <h1 style="font-size:22px">Your Result</h1>
+        <span class="pill pill-green">COMPLETE</span>
+      </div>
+
+      <div class="result-card">
+        <div id="result-icon" class="hero-icon sm"><svg class="icon" width="24" height="24"><use href="#i-heart"/></svg></div>
+        <p class="label">HEART RATE</p>
+        <div class="result-bpm"><span id="result-bpm">--</span></div>
+        <p class="sub" style="margin-top:-8px">BPM</p>
+        <span id="result-zone" class="zone-badge zone-normal">NORMAL</span>
+      </div>
+
+      <p id="result-tachycardia" class="warning-banner hidden">Reading may be a halved high heart rate. If you felt your heart racing, re-measure to confirm.</p>
+
+      <div class="stat-row">
+        <div class="stat-card"><svg class="icon" width="16" height="16"><use href="#i-target"/></svg><div id="result-confidence" class="value">--</div><div class="label">Confidence</div></div>
+        <div class="stat-card"><svg class="icon" width="16" height="16"><use href="#i-finger"/></svg><div id="result-samples" class="value">--</div><div class="label">Readings</div></div>
+        <div class="stat-card"><svg class="icon" width="16" height="16"><use href="#i-bars"/></svg><div id="result-sqi" class="value">--</div><div class="label">Signal Quality</div></div>
+      </div>
+
+      <div class="card">
+        <div class="section-header"><svg class="icon" width="16" height="16"><use href="#i-bars"/></svg><span>Heart rate zones</span></div>
+        <div class="zone-legend">
+          <div class="zone-row"><span class="zone-dot" style="background:#60a5fa"></span><b>&lt; 60 BPM</b><span class="sub small">Bradycardia</span></div>
+          <div class="zone-row"><span class="zone-dot" style="background:var(--ok)"></span><b>60–100 BPM</b><span class="sub small">Normal Resting</span></div>
+          <div class="zone-row"><span class="zone-dot" style="background:var(--warn)"></span><b>100–120 BPM</b><span class="sub small">Elevated</span></div>
+          <div class="zone-row"><span class="zone-dot" style="background:var(--pulse)"></span><b>&gt; 120 BPM</b><span class="sub small">High — Rest &amp; Recheck</span></div>
+        </div>
+      </div>
+
+      <div class="note"><svg class="icon" width="15" height="15"><use href="#i-shield"/></svg><span>For general wellness &amp; research reference only. Not a medical device.</span></div>
+
+      <button id="btn-done" class="btn"><svg class="icon" width="16" height="16"><use href="#i-check"/></svg>Done</button>
+      <button id="btn-again" class="btn secondary"><svg class="icon" width="16" height="16"><use href="#i-refresh"/></svg>Measure Again</button>
+    </div>
+  </section>
+
+  <section id="screen-failed" class="screen">
+    <div class="scroll">
+      <div class="center" style="flex:0 0 auto;padding-top:8px">
+        <div class="hero-icon warn"><svg class="icon" width="40" height="40"><use href="#i-warn"/></svg></div>
+        <h1 style="color:var(--pulse)">Measurement Failed</h1>
+        <p id="failed-reason" class="sub"></p>
+      </div>
+      <div class="card">
+        <div class="section-header"><svg class="icon" width="16" height="16"><use href="#i-pin"/></svg><span>Tips for accurate reading</span></div>
+        <div class="tip-row"><svg class="icon" width="14" height="14"><use href="#i-chevron"/></svg><span>Keep your finger flat and still on the lens</span></div>
+        <div class="tip-row"><svg class="icon" width="14" height="14"><use href="#i-chevron"/></svg><span>Apply gentle, steady pressure — not too hard</span></div>
+        <div class="tip-row"><svg class="icon" width="14" height="14"><use href="#i-chevron"/></svg><span>Rest your arm on a surface to reduce motion</span></div>
+        <div class="tip-row"><svg class="icon" width="14" height="14"><use href="#i-chevron"/></svg><span>Avoid scrolling or tapping during measurement</span></div>
+        <div class="tip-row"><svg class="icon" width="14" height="14"><use href="#i-chevron"/></svg><span>If outdoors, shade the camera from direct sunlight</span></div>
+      </div>
+      <button id="btn-retry" class="btn"><svg class="icon" width="16" height="16"><use href="#i-refresh"/></svg>Try Again</button>
+      <button id="btn-failed-home" class="btn-text">Back to home</button>
+    </div>
+  </section>
+</div>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
